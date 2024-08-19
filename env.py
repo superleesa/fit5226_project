@@ -1,21 +1,33 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
 class Environment:
     def __init__(self, n=5):
         self.n = n
-        self.goal_location = (n-1, n-1)
+        self.goal_location = np.array([n-1, n-1])
         self.goal = Goal(self)
         self.agent = Agent(self)
-        # self.item = Item(self)
+        self.item = Item(self)
 
     def initialize_state(self):
-        self.grid = np.zeros((self.n, self.n)) 
-        r = self.item.place_randomly()
-        self.agent.place_randomly(r)
-        # self.grid[self.goal.location] = 3
+        self.grid = np.zeros((self.n, self.n))
+        self.agent.location = self.agent.place_randomly()
+        self.item.location  = self.item.place_randomly(self.agent.location)
+        self.goal.location = np.array([self.n-1, self.n-1])
 
-    def get_available_actions(self):
+    def get_state(self):
+        return {
+            'Agent Location: ': self.agent.location,
+            'Item Location: ': self.item.location,
+            'Goal Location: ': self.goal.location
+        }
+
+    def get_available_actions(self, action):
         # logic to determine available actions
+        # if action == 'up':
+        # elif action == 'down':
+        # elif action == 'right':
+        # elif action == 'left':
         pass
 
     def animate(self):
@@ -25,42 +37,37 @@ class Environment:
         self.animate()
 
 class Goal:
-    def __inint__(self, environment):
+    def __init__(self, environment):
         self.location = environment.goal_location
 
-class MapObject: # abstract
-    pass
-
-class Agent:
-    def __init__(self, environment) -> None:
-        self.environment = environment
-        self.location = self.place_rondomly()
-
-    def place_rondomly(self):
-        start_location = None
-        # check if the start location is not on the goal location
-        while start_location != None and start_location != self.environment.goal_location: 
-            start_location = np.random.randint(0, self.environment.n, size=2)
-        return start_location
-
-class Item:
+class GridEntity(ABC):
     def __init__(self, environment):
         self.environment = environment
-        self.location = np.array([0, 0])
+        self.icon = None
+        self.location = None
+    
+    def place_randomly(self, another_entity=None):
+        location = None
+        if another_entity is None:
+            while location is None or np.array_equal(location, self.environment.goal_location):
+                location = np.random.randint(0, self.environment.n, size=2)
+        else:
+            while location is None or np.array_equal(location, self.environment.goal_location) or np.array_equal(location, another_entity):
+                location = np.random.randint(0, self.environment.n, size=2)
+        return location
 
-    def place_rondomly(self):
-        pass
-#         self.location = np.random.randint(0, self.environment.n, size=2)
-#         while np.array_equal(self.location, self.environment.goal.location):
-#             self.location = np.random.randint(0, self.environment.size, size=2)
+class Agent(GridEntity):
+    def __init__(self, environment) -> None:
+        super().__init__(environment)
+        self.icon = 'A'
 
+class Item(GridEntity):
+    def __init__(self, environment):
+        super().__init__(environment)
+        self.icon = 'I'
 
 # test
 env = Environment(n=5)
-# state = env.reset()
-# done = False
-# while not done:
-#     action = np.random.choice(env.get_available_actions())
-#     state, reward, done = env.step(action)
-#     print(f"State: {state}, Reward: {reward}, Done: {done}")
+env.initialize_state()
+print(env.get_state())
 
