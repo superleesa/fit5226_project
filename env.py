@@ -22,13 +22,12 @@ class Environment:
             'Goal Location: ': self.goal.location
         }
 
-    def get_available_actions(self, action):
+    def get_available_actions(self):
         # logic to determine available actions
-        # if action == 'up':
-        # elif action == 'down':
-        # elif action == 'right':
-        # elif action == 'left':
-        pass
+        actions = []
+        x, y = self.agent.location
+
+        return actions
 
     def animate(self):
         pass
@@ -60,6 +59,9 @@ class Agent(GridEntity):
     def __init__(self, environment) -> None:
         super().__init__(environment)
         self.icon = 'A'
+
+    def move(self, action):
+        pass
 
 class Item(GridEntity):
     def __init__(self, environment):
