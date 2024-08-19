@@ -26,7 +26,14 @@ class Environment:
         # logic to determine available actions
         actions = []
         x, y = self.agent.location
-
+        if x > 0:
+            actions.append(np.array([x, y+1]))
+        if x < self.n - 1:
+            actions.append(np.array([x, y-1]))
+        if y > 0:
+            actions.append(np.array([x-1, y]))
+        if y < self.n - 1:
+            actions.append(np.array([x+1, y]))
         return actions
 
     def animate(self):
@@ -46,6 +53,7 @@ class GridEntity(ABC):
         self.location = None
     
     def place_randomly(self, another_entity=None):
+        # The start, item, goal location must be different position
         location = None
         if another_entity is None:
             while location is None or np.array_equal(location, self.environment.goal_location):
@@ -72,4 +80,3 @@ class Item(GridEntity):
 env = Environment(n=5)
 env.initialize_state()
 print(env.get_state())
-
