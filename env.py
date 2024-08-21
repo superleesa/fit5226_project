@@ -1,10 +1,14 @@
+from abc import ABC
+
 import numpy as np
-from abc import ABC, abstractmethod
+
+from state import State
+
 
 class Environment:
     def __init__(self, n=5, item = None):
         self.n = n
-        self.goal_location = np.array([n-1, n-1])
+        self.goal_location = (n-1, n-1)
         self.goal = Goal(self)
         self.agent = Agent(self)
         self.item = Item(self) if item is None else item
@@ -26,11 +30,7 @@ class Environment:
         self.grid[x_item, y_item] = self.item
 
     def get_state(self):
-        return {
-            'Agent Location: ': self.agent.location,
-            'Item Location: ': self.item.location,
-            'Goal Location: ': self.goal.location
-        }
+        return State(self.agent.location, self.item.location)
 
     def get_available_actions(self):
         # logic to determine available actions
@@ -49,14 +49,18 @@ class Environment:
                 actions.append(np.array([x+1, y]))
         return actions
     
-    def get_reward(self, x, y):
-        reward = -1
-        if self.is_goal_state():
+    def get_reward(self, state: State):
+        # TODO: technically, speaking i think it should accept (prev state, action, next state)
+        
+        DEFAULT_TIME_PENALTY = -1  # TODO: parametrize this
+        reward = DEFAULT_TIME_PENALTY
+        if self.is_goal_state(state):
             reward = 10
         return reward
     
-    def is_goal_state(self, x, y):
-        return np.array_equal(self.goal.location, np.array([x, y]))
+    def is_goal_state(self, state: State):
+        return self.goal.location == state.agent_location
+        # return np.array_equal(self.goal.location, np.array([x, y]))
 
     def animate(self):
         pass
