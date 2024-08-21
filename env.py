@@ -1,4 +1,5 @@
 from abc import ABC
+from random import randint
 
 import numpy as np
 
@@ -8,24 +9,17 @@ from state import State
 class Environment:
     def __init__(self, n=5, item = None):
         self.n = n
-        self.goal_location = (n-1, n-1)
-        self.goal = Goal(self)
-        self.agent = Agent(self)
-        self.item = Item(self) if item is None else item
-        self.is_goal = False
-
-    def initialize_state(self):
-        self.grid = np.zeros((self.n, self.n))
-        self.agent.location = self.agent.place_randomly()
-        self.item.location  = self.item.place_randomly(self.agent.location)
-        self.goal.location = np.array([self.n-1, self.n-1])
+        
+        self.agent = AgentObject(self)
+        self.item = ItemObject(self) if item is None else item
+        
+        self.agent.set_location_randomly(self.n, self.n)
+        self.item.set_location_randomly(self.n, self.n, [self.agent.location])
+        
+        # initialize grid and put grid objects on the grid
         x_agent, y_agent = self.agent.location
         x_item, y_item = self.item.location
-        print(x_agent)
-        print(y_agent)
-        print(self.grid[x_agent, y_agent])
-
-  
+        self.grid = np.zeros((self.n, self.n))
         self.grid[x_agent, y_agent] = self.agent
         self.grid[x_item, y_item] = self.item
 
@@ -59,8 +53,7 @@ class Environment:
         return reward
     
     def is_goal_state(self, state: State):
-        return self.goal.location == state.agent_location
-        # return np.array_equal(self.goal.location, np.array([x, y]))
+        return self.item.location == state.agent_location  # we treat the item location as the goal location
 
     def animate(self):
         pass
@@ -68,36 +61,39 @@ class Environment:
     def step(self):
         self.animate()
 
-class Goal:
-    def __init__(self, environment):
-        self.location = environment.goal_location
 
-class GridEntity(ABC):
-    def __init__(self, environment):
-        self.environment = environment
+class GridObject(ABC):
+    def __init__(self, location: tuple[int, int] | None = None) -> None:
         self.icon = None
-        self.location = None
+        self.location = location
     
-    def place_randomly(self, another_entity=None):
+    def set_location_randomly(self, max_x: int, max_y: int, disallowed_locations: list[tuple[int, int]] = []) -> tuple[int, int]:
+        """
+        Note: max_x and max_y are exclusive
+        
+        disallowed_locations: list of locations that are not allowed to be placed
+        (e.g. agent and item location should not be initialized to the same place)
+        """
+        if self.location is not None:
+            return self.location
+        
         # The start, item, goal location must be different position
         location = None
-        if another_entity is None:
-            while location is None or np.array_equal(location, self.environment.goal_location):
-                location = np.random.randint(0, self.environment.n, size=2)
-        else:
-            while location is None or np.array_equal(location, self.environment.goal_location) or np.array_equal(location, another_entity):
-                location = np.random.randint(0, self.environment.n, size=2)
+        
+        while location is None or location in disallowed_locations:
+            location = (randint(0, max_x-1), randint(0, max_y-1))
+        
+        self.location = location
         return location
 
-class Agent(GridEntity):
-    def __init__(self, environment) -> None:
-        super().__init__(environment)
+
+class AgentObject(GridObject):
+    def __init__(self, location: tuple[int, int] | None = None) -> None:
+        super().__init__(location)
         self.icon = 'A'
 
-    def move(self, action):
-        pass
 
-class Item(GridEntity):
-    def __init__(self, environment):
-        super().__init__(environment)
+class ItemObject(GridObject):
+    def __init__(self, location: tuple[int, int] | None = None):
+        super().__init__(location)
         self.icon = 'I'
