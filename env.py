@@ -7,10 +7,10 @@ class Environment:
         self.goal_location = np.array([n-1, n-1])
         self.goal = Goal(self)
         self.agent = Agent(self)
-        self.item = Item(self)
         self.is_goal = False
 
     def initialize_state(self):
+        self.item = Item(self)
         self.grid = np.zeros((self.n, self.n))
         self.agent.location = self.agent.place_randomly()
         self.item.location  = self.item.place_randomly(self.agent.location)
