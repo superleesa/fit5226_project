@@ -16,12 +16,13 @@ class Environment:
         self.agent.set_location_randomly(self.n, self.n)
         self.item.set_location_randomly(self.n, self.n, [self.agent.location])
         
+        # TODO: possibly implmeent this if there are multiple GridObjects to check for
         # initialize grid and put grid objects on the grid
-        x_agent, y_agent = self.agent.location
-        x_item, y_item = self.item.location
-        self.grid = np.zeros((self.n, self.n))
-        self.grid[x_agent, y_agent] = self.agent
-        self.grid[x_item, y_item] = self.item
+        # x_agent, y_agent = self.agent.location
+        # x_item, y_item = self.item.location
+        # self.grid = np.zeros((self.n, self.n))
+        # self.grid[x_agent, y_agent] = self.agent
+        # self.grid[x_item, y_item] = self.item
 
     def get_state(self):
         return State(self.agent.location, self.item.location)
@@ -34,13 +35,13 @@ class Environment:
             self.is_goal = True
         else:    
             if x > 0:
-                actions.append(np.array([x, y+1]))
+                actions.append(np.array([x, y+1]))  # right
             if x < self.n - 1:
-                actions.append(np.array([x, y-1]))
+                actions.append(np.array([x, y-1]))  # left
             if y > 0:
-                actions.append(np.array([x-1, y]))
+                actions.append(np.array([x-1, y]))  # up
             if y < self.n - 1:
-                actions.append(np.array([x+1, y]))
+                actions.append(np.array([x+1, y]))  # down
         return actions
     
     def get_reward(self, state: State):
@@ -51,6 +52,10 @@ class Environment:
         if self.is_goal_state(state):
             reward = 10
         return reward
+    
+    def get_next_state(self, action: int) -> State:
+        self.agent.move(action)
+        return State(self.agent.location, self.item.location)
     
     def is_goal_state(self, state: State):
         return self.item.location == state.agent_location  # we treat the item location as the goal location
@@ -91,6 +96,23 @@ class AgentObject(GridObject):
     def __init__(self, location: tuple[int, int] | None = None) -> None:
         super().__init__(location)
         self.icon = 'A'
+    
+    def move(self, action: int) -> None:
+        # NOTE: assumes that action is valid (i.e. agent is not at the edge of the grid)
+        if self.location is None:
+            raise ValueError("Agent location is not set")
+        x, y = self.location
+        if action == 0:
+            self.location = (x, y+1)  # right
+        elif action == 1:
+            self.location = (x, y-1)
+        elif action == 2:
+            self.location = (x-1, y)
+        elif action == 3:
+            self.location = (x+1, y)
+        else:
+            raise ValueError(f"Invalid action: {action}")
+        
 
 
 class ItemObject(GridObject):

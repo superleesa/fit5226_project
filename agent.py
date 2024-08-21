@@ -55,9 +55,7 @@ class Trainer:
                 current_state = env.get_state()
                 
                 action = self.choose_action(qval_matrix, current_state)
-                next_state = env.get_next_state_from_action(
-                    current_state, action
-                )  # TODO: implement this method
+                next_state = env.get_next_state(action)
                 reward = env.get_reward(next_state)
                 self.update(current_state, next_state, reward, action, qval_matrix)
                 
