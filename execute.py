@@ -22,7 +22,7 @@ def execute():
     print("Starting inference...")
     while not env.is_goal_state(state):
         action = agent.choose_action(qval_matrix, state, is_training=False)
-        next_state = env.get_next_state_from_action(state, action)  # Ensure this method is implemented
+        next_state = env.get_next_state_from_action(state, action) 
         state = next_state
         total_steps += 1
         print(f"Step: {total_steps}, Agent Location: {state.agent_location}, Item Location: {state.item_location}")
