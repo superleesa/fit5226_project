@@ -1,7 +1,19 @@
 import numpy as np
+import pickle
 
-from env import Environment, Item
+from env import Environment, ItemObject
 from state import State
+
+
+def generate_grid_location_list(max_x: int, max_y) -> list[tuple[int, int]]:
+    return [(i, j) for i in range(max_x) for j in range(max_y)]
+
+
+def save_trained_qval_matrix(trained_qval_matrix: np.ndarray, item: ItemObject) -> None:
+    if item.location is None:
+        raise ValueError("Item location is None")
+    with open(f'qval_matrix{item.location[0]}_{item.location[1]}.pickle', "wb") as f:
+        pickle.dump(trained_qval_matrix, f)
 
 
 class Trainer:
@@ -11,15 +23,30 @@ class Trainer:
         discount_rate: float = 0.9,
         epsilon: float = 0.1,
         num_episode_per_intermediate_item: int = 100,
+        grid_size: tuple[int, int] = (5, 5),
     ) -> None:
         self.alpha = alpha  # learning rate
         self.epsilon = epsilon  # exploration rate
         self.discount_rate = discount_rate
         self.num_episode_per_intermediate_item = num_episode_per_intermediate_item
+        self.grid_size = grid_size
+        
+        self.trained_qval_matrices: list[np.ndarray] = []
+    
+    def train(self) -> None:
+        """
+        We are training for all "goal location" in the grid; so indivisual state consists of x, y, goal_x, goal_y, technically speaking.
+        However, to ensure that the agent samples from all possible goal locations fairly, we will separately train for all possible goal locations.
+        """
+        item_grid_locations = generate_grid_location_list(self.grid_size[0], self.grid_size[1])
+        all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
+        for item in all_items:
+            qval_matrix = self.train_one_intermediate_item(item)
+            self.trained_qval_matrices.append(qval_matrix)
+            save_trained_qval_matrix(qval_matrix, item)
 
-    def train_one_intermediate_item(self, item: Item | None = None):
+    def train_one_intermediate_item(self, item: ItemObject | None = None) -> np.ndarray:
         env = Environment(n=5, item=item)
-        env.initialize_state()
 
         qval_matrix = np.zeros((env.n, env.n, 4))  # 4 for 4 actions
 
@@ -37,6 +64,8 @@ class Trainer:
                 if env.is_goal_state(next_state):
                     break
                 current_state = next_state
+        
+        return qval_matrix
     
     def update(self, current_state: State, next_state: State, reward: float, action: int, qval_matrix: np.ndarray) -> None:
         qval_difference = self.alpha * (
