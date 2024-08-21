@@ -8,12 +8,17 @@ class Environment:
         self.goal = Goal(self)
         self.agent = Agent(self)
         self.item = Item(self)
+        self.is_goal = False
 
     def initialize_state(self):
         self.grid = np.zeros((self.n, self.n))
         self.agent.location = self.agent.place_randomly()
         self.item.location  = self.item.place_randomly(self.agent.location)
         self.goal.location = np.array([self.n-1, self.n-1])
+        x_agent, y_agent = self.agent.location
+        x_item, y_item = self.item.location
+        self.grid[x_agent][y_agent] = self.agent
+        self.grid[x_item][y_item] = self.item
 
     def get_state(self):
         return {
@@ -26,15 +31,30 @@ class Environment:
         # logic to determine available actions
         actions = []
         x, y = self.agent.location
-        if x > 0:
-            actions.append(np.array([x, y+1]))
-        if x < self.n - 1:
-            actions.append(np.array([x, y-1]))
-        if y > 0:
-            actions.append(np.array([x-1, y]))
-        if y < self.n - 1:
-            actions.append(np.array([x+1, y]))
+        if self.is_goal_state():
+            self.is_goal = True
+        else:    
+            if x > 0:
+                actions.append(np.array([x, y+1]))
+            if x < self.n - 1:
+                actions.append(np.array([x, y-1]))
+            if y > 0:
+                actions.append(np.array([x-1, y]))
+            if y < self.n - 1:
+                actions.append(np.array([x+1, y]))
         return actions
+    
+    def get_reward(self, x, y):
+        reward = -1
+        if self.is_goal_state():
+            reward = 10
+        return reward
+    
+    def is_goal_state(self, x, y):
+        if x == self.n-1 and y == self.n-1:
+            return True
+        else:
+            return False
 
     def animate(self):
         pass
@@ -75,8 +95,3 @@ class Item(GridEntity):
     def __init__(self, environment):
         super().__init__(environment)
         self.icon = 'I'
-
-# test
-env = Environment(n=5)
-env.initialize_state()
-print(env.get_state())
