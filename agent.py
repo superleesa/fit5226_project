@@ -4,7 +4,7 @@ from env import Environment, Item
 from state import State
 
 
-class Agent:
+class Trainer:
     def __init__(
         self,
         alpha: float = 0.1,
@@ -48,12 +48,12 @@ class Agent:
             *current_state.agent_location, action
         ] += qval_difference
 
-    def choose_action(self, qval_matrix, state: State, is_training: bool = True) -> int:
+    def choose_action(self, qval_matrix, state: State) -> int:
         """
         Epislon greedy method to choose action
         """
         agent_location_x, agent_location_y = state.agent_location
-        if is_training and np.random.random() < self.epsilon:
+        if np.random.random() < self.epsilon:
             return np.random.randint(4)
         else:
             return np.argmax(qval_matrix[agent_location_x, agent_location_y])
