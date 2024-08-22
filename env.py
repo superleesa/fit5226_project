@@ -75,31 +75,31 @@ class Environment:
         )  # we treat the item location as the goal location
 
     def animate(self):
-            self.ax.clear()
-            self.ax.set_xlim(0, self.n)
-            self.ax.set_ylim(self.n, 0)
-            self.ax.set_xticks(np.arange(0, self.n + 1, 1))
-            self.ax.set_yticks(np.arange(0, self.n + 1, 1))
-            self.ax.grid(True)
+        self.ax.clear()
+        self.ax.set_xlim(0, self.n)
+        self.ax.set_ylim(self.n, 0)
+        self.ax.set_xticks(np.arange(0, self.n + 1, 1))
+        self.ax.set_yticks(np.arange(0, self.n + 1, 1))
+        self.ax.grid(True)
 
-            # Plotting the agent, item, and goal
-            self.ax.text(self.agent.location[1] + 0.5, self.agent.location[0] + 0.5, 'A',
-                ha='center', va='center', fontsize=16, color='blue')
-            self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'I',
-                ha='center', va='center', fontsize=16, color='green')
-            self.ax.text(self.goal_location[1] + 0.5, self.goal_location[0] + 0.5, 'G',
-                ha='center', va='center', fontsize=16, color='red')
+        # Plotting the agent, item, and goal
+        self.ax.text(self.agent.location[1] + 0.5, self.agent.location[0] + 0.5, 'A',
+            ha='center', va='center', fontsize=16, color='blue')
+        self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'I',
+            ha='center', va='center', fontsize=16, color='green')
+        self.ax.text(self.goal_location[1] + 0.5, self.goal_location[0] + 0.5, 'G',
+            ha='center', va='center', fontsize=16, color='red')
 
-            handles = [
-            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=8, label='Agent (A)'),
-            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Item (I)'),
-            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=8, label='Goal (G)')
-            ]
-            self.ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
+        handles = [
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=8, label='Agent (A)'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Item (I)'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=8, label='Goal (G)')
+        ]
+        self.ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
 
-            plt.subplots_adjust(right=0.75, left=0.1)
-            self.fig.canvas.draw_idle()
-            plt.pause(0.5)  # Pause to allow visualization of the movement
+        plt.subplots_adjust(right=0.75, left=0.1)
+        self.fig.canvas.draw_idle()
+        plt.pause(0.5)  # Pause to allow visualization of the movement
          
     def step(self, action: int) -> tuple[float, State]:
         next_state = self.get_next_state(action)
