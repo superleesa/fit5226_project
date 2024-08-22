@@ -58,11 +58,12 @@ class Trainer:
                 if env.is_goal_state(current_state):
                     break
                 
-                # TODO: i think we don't need to keep control of the current state()
+                # TODO: i think we don't need to keep control of the current state (env already has within it)
                 possible_actions = env.get_available_actions()
                 action = self.choose_action(possible_actions, current_state, qval_matrix)
                 next_state = env.get_next_state(action)
                 reward = env.get_reward(next_state)
+                # TODO: call env.step(action) instead of calling get_next_state and get_reward separately
                 self.update(current_state, next_state, reward, action, qval_matrix)
                 
                 if env.is_goal_state(next_state):
