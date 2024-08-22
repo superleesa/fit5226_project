@@ -34,14 +34,14 @@ class Environment:
         if self.is_goal_state():
             self.is_goal = True
         else:    
-            if x > 0:
-                actions.append(np.array([x, y+1]))  # right
-            if x < self.n - 1:
-                actions.append(np.array([x, y-1]))  # left
-            if y > 0:
-                actions.append(np.array([x-1, y]))  # up
-            if y < self.n - 1:
-                actions.append(np.array([x+1, y]))  # down
+        if x > 0:
+            actions.append(0)  # left
+        if x < self.n - 1:
+            actions.append(1)  # right
+        if y > 0:
+            actions.append(2)  # down
+        if y < self.n - 1:
+            actions.append(3)  # up
         return actions
     
     def get_reward(self, state: State):
@@ -103,13 +103,13 @@ class AgentObject(GridObject):
             raise ValueError("Agent location is not set")
         x, y = self.location
         if action == 0:
-            self.location = (x, y+1)  # right
+            self.location = (x-1, y)  # left
         elif action == 1:
-            self.location = (x, y-1)
+            self.location = (x+1, y)  # right
         elif action == 2:
-            self.location = (x-1, y)
+            self.location = (x, y-1)  # down
         elif action == 3:
-            self.location = (x+1, y)
+            self.location = (x, y+1)  # up
         else:
             raise ValueError(f"Invalid action: {action}")
         
