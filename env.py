@@ -99,12 +99,11 @@ class Environment:
 
             plt.subplots_adjust(right=0.75, left=0.1)
             self.fig.canvas.draw_idle()
+            plt.pause(0.5)  # Pause to allow visualization of the movement
          
-
     def step(self, action: int) -> tuple[float, State]:
         next_state = self.get_next_state(action)
         self.animate()
-        plt.pause(0.5)  # Pause to allow visualization of the movement
         reward = self.get_reward(next_state)
         return reward, next_state
 
