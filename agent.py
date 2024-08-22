@@ -51,6 +51,8 @@ class Trainer:
         qval_matrix = np.zeros((env.n, env.n, 4))  # 4 for 4 actions
 
         for episode in range(self.num_episode_per_intermediate_item):
+            env.initialize_for_new_episode()
+            current_state = env.get_state()
             while True:
                 if env.is_goal_state(current_state):
                     break
