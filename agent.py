@@ -53,8 +53,8 @@ class Trainer:
         for episode in range(self.num_episode_per_intermediate_item):
             while True:
                 current_state = env.get_state()
-                
-                action = self.choose_action(qval_matrix, current_state)
+                possible_actions = env.get_available_actions()
+                action = self.choose_action(possible_actions, current_state, qval_matrix)
                 next_state = env.get_next_state(action)
                 reward = env.get_reward(next_state)
                 self.update(current_state, next_state, reward, action, qval_matrix)
@@ -75,12 +75,13 @@ class Trainer:
             *current_state.agent_location, action
         ] += qval_difference
 
-    def choose_action(self, qval_matrix, state: State) -> int:
+    def choose_action(self, possible_actions: list[int], state: State, qval_matrix: np.ndarray,) -> int:
         """
         Epislon greedy method to choose action
         """
         agent_location_x, agent_location_y = state.agent_location
-        if np.random.random() < self.epsilon:
-            return np.random.randint(4)
+        if random.random() < self.epsilon:
+            return random.choice(possible_actions)
         else:
-            return np.argmax(qval_matrix[agent_location_x, agent_location_y])
+            action_to_qval = list(zip(possible_actions, qval_matrix[agent_location_x, agent_location_y, possible_actions]))
+            return max(action_to_qval, key=lambda x: x[1])[0]
