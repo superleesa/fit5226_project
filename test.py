@@ -1,7 +1,8 @@
+import numpy as np
 from env import Environment
 
 # Import Agent inside the function where it's used
-def main():
+def test_train_viz():
     # Import Agent here to avoid circular import at the top level
     from agent import Agent
 
@@ -20,4 +21,4 @@ def main():
         env.step(action)  # Each step will now trigger an animation update
 
 if __name__ == "__main__":
-    main()
+    test_train_viz()
