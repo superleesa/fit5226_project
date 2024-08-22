@@ -19,10 +19,10 @@ def save_trained_qval_matrix(trained_qval_matrix: np.ndarray, item: ItemObject) 
 class Trainer:
     def __init__(
         self,
-        alpha: float = 0.1,
+        alpha: float = 0.3,
         discount_rate: float = 0.9,
         epsilon: float = 0.1,
-        num_episode_per_intermediate_item: int = 100,
+        num_episode_per_intermediate_item: int = 1000,
         grid_size: tuple[int, int] = (5, 5),
     ) -> None:
         self.alpha = alpha  # learning rate
