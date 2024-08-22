@@ -1,14 +1,18 @@
 from abc import ABC
 from random import randint
 
-import numpy as np
-
 from state import State
 
 
+DEFAULT_TIME_PENALTY = -1
+GOAL_STATE_REWARD = 100
+
+
 class Environment:
-    def __init__(self, n=5, item=None):
+    def __init__(self, n=5, item=None, time_penalty=DEFAULT_TIME_PENALTY, goal_state_reward=GOAL_STATE_REWARD):
         self.n = n
+        self.time_penalty = time_penalty
+        self.goal_state_reward = goal_state_reward
 
         self.item = ItemObject() if item is None else item
         self.agent = AgentObject()
@@ -50,10 +54,7 @@ class Environment:
 
     def get_reward(self, state: State):
         # TODO: technically, i think it should accept (prev state, action, next state)
-
-        DEFAULT_TIME_PENALTY = -1  # TODO: parametrize this
-        GOAL_STATE_REWARD = 100  # TODO: parametrize this
-        return GOAL_STATE_REWARD if self.is_goal_state(state) else DEFAULT_TIME_PENALTY
+        return self.goal_state_reward if self.is_goal_state(state) else self.time_penalty
 
     def get_next_state(self, action: int) -> State:
         self.agent.move(action)
