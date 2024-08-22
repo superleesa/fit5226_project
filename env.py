@@ -37,9 +37,7 @@ class Environment:
         # logic to determine available actions
         actions = []
         x, y = self.agent.location
-        if self.is_goal_state():
-            self.is_goal = True
-        else:    
+        
         if x > 0:
             actions.append(0)  # left
         if x < self.n - 1:
@@ -51,19 +49,17 @@ class Environment:
         return actions
     
     def get_reward(self, state: State):
-        # TODO: technically, speaking i think it should accept (prev state, action, next state)
+        # TODO: technically, i think it should accept (prev state, action, next state)
         
         DEFAULT_TIME_PENALTY = -1  # TODO: parametrize this
-        reward = DEFAULT_TIME_PENALTY
-        if self.is_goal_state(state):
-            reward = 10
-        return reward
+        GOAL_STATE_REWARD = 100  # TODO: parametrize this
+        return GOAL_STATE_REWARD if self.is_goal_state(state) else DEFAULT_TIME_PENALTY
     
     def get_next_state(self, action: int) -> State:
         self.agent.move(action)
         return State(self.agent.location, self.item.location)
     
-    def is_goal_state(self, state: State):
+    def is_goal_state(self, state: State) -> bool:
         return self.item.location == state.agent_location  # we treat the item location as the goal location
 
     def animate(self):
@@ -75,8 +71,8 @@ class Environment:
 
 class GridObject(ABC):
     def __init__(self, location: tuple[int, int] | None = None) -> None:
-        self.icon = None
-        self.location = location
+        self.icon: str
+        self.location = location  # NOTE: location is a tuple of (x, y) where x and y are coordinates on the grid (not indices)
     
     def set_location_randomly(self, max_x: int, max_y: int, disallowed_locations: list[tuple[int, int]] = []) -> tuple[int, int]:
         """
@@ -85,12 +81,8 @@ class GridObject(ABC):
         disallowed_locations: list of locations that are not allowed to be placed
         (e.g. agent and item location should not be initialized to the same place)
         """
-        if self.location is not None:
-            return self.location
-        
         # The start, item, goal location must be different position
         location = None
-        
         while location is None or location in disallowed_locations:
             location = (randint(0, max_x-1), randint(0, max_y-1))
         
