@@ -10,11 +10,11 @@ class Environment:
     def __init__(self, n=5, item = None):
         self.n = n
         
-        self.agent = AgentObject(self)
-        self.item = ItemObject(self) if item is None else item
+        self.item = ItemObject() if item is None else item
+        self.agent = AgentObject()
         
-        self.agent.set_location_randomly(self.n, self.n)
-        self.item.set_location_randomly(self.n, self.n, [self.agent.location])
+        if self.item.location is None:
+            self.item.set_location_randomly(self.n, self.n)
         
         # TODO: possibly implmeent this if there are multiple GridObjects to check for
         # initialize grid and put grid objects on the grid
@@ -23,6 +23,9 @@ class Environment:
         # self.grid = np.zeros((self.n, self.n))
         # self.grid[x_agent, y_agent] = self.agent
         # self.grid[x_item, y_item] = self.item
+    
+    def initialize_for_new_episode(self):
+        self.agent.set_location_randomly(self.n, self.n, [self.item.location])
 
     def get_state(self):
         return State(self.agent.location, self.item.location)
