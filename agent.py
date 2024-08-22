@@ -52,7 +52,10 @@ class Trainer:
 
         for episode in range(self.num_episode_per_intermediate_item):
             while True:
-                current_state = env.get_state()
+                if env.is_goal_state(current_state):
+                    break
+                
+                # TODO: i think we don't need to keep control of the current state()
                 possible_actions = env.get_available_actions()
                 action = self.choose_action(possible_actions, current_state, qval_matrix)
                 next_state = env.get_next_state(action)
