@@ -25,12 +25,14 @@ class Agent:
         epsilon: float = 0.1,
         num_episode_per_intermediate_item: int = 1000,
         grid_size: tuple[int, int] = (5, 5),
+        save_weights: bool = False,
     ) -> None:
         self.alpha = alpha  # learning rate
         self.epsilon = epsilon  # exploration rate
         self.discount_rate = discount_rate
         self.num_episode_per_intermediate_item = num_episode_per_intermediate_item
         self.grid_size = grid_size
+        self.save_weights = save_weights
         
         self.trained_qval_matrices: list[np.ndarray] = []
     
@@ -44,7 +46,8 @@ class Agent:
         for item in all_items:
             qval_matrix = self.train_one_intermediate_item(item)
             self.trained_qval_matrices.append(qval_matrix)
-            save_trained_qval_matrix(qval_matrix, item)
+            if self.save_weights:
+                save_trained_qval_matrix(qval_matrix, item)
 
     def train_one_intermediate_item(self, item: ItemObject | None = None) -> np.ndarray:
         env = Environment(n=5, item=item)
