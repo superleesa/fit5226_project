@@ -9,6 +9,7 @@ GOAL_STATE_REWARD = 100
 
 
 class Environment:
+    # NOTE: currently action is an integer, but we might want to change it to enum
     def __init__(self, n=5, item=None, time_penalty=DEFAULT_TIME_PENALTY, goal_state_reward=GOAL_STATE_REWARD):
         self.n = n
         self.time_penalty = time_penalty
@@ -68,8 +69,11 @@ class Environment:
     def animate(self):
         pass
 
-    def step(self):
+    def step(self, action: int) -> tuple[float, State]:
+        next_state = self.get_next_state(action)
         self.animate()
+        reward = self.get_reward(next_state)
+        return reward, next_state
 
 
 class GridObject(ABC):
