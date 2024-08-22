@@ -1,5 +1,7 @@
 from abc import ABC
 from random import randint
+import numpy as np
+import matplotlib.pyplot as plt
 
 from state import State
 
@@ -14,6 +16,7 @@ class Environment:
         self.n = n
         self.time_penalty = time_penalty
         self.goal_state_reward = goal_state_reward
+        self.goal_location = (self.n - 1, self.n - 1)  # Set the goal state location to (n-1, n-1)
 
         self.item = ItemObject() if item is None else item
         self.agent = AgentObject()
@@ -29,8 +32,13 @@ class Environment:
         # self.grid[x_agent, y_agent] = self.agent
         # self.grid[x_item, y_item] = self.item
 
+        # Setup for animation
+        self.fig, self.ax = plt.subplots(figsize=(8, 8))
+        self.initialize_for_new_episode()
+
     def initialize_for_new_episode(self):
         self.agent.set_location_randomly(self.n, self.n, [self.item.location])
+        self.animate()  # Initial drawing of the grid
 
     def get_state(self):
         return State(self.agent.location, self.item.location)
@@ -67,11 +75,36 @@ class Environment:
         )  # we treat the item location as the goal location
 
     def animate(self):
-        pass
+            self.ax.clear()
+            self.ax.set_xlim(0, self.n)
+            self.ax.set_ylim(self.n, 0)
+            self.ax.set_xticks(np.arange(0, self.n + 1, 1))
+            self.ax.set_yticks(np.arange(0, self.n + 1, 1))
+            self.ax.grid(True)
+
+            # Plotting the agent, item, and goal
+            self.ax.text(self.agent.location[1] + 0.5, self.agent.location[0] + 0.5, 'A',
+                ha='center', va='center', fontsize=16, color='blue')
+            self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'I',
+                ha='center', va='center', fontsize=16, color='green')
+            self.ax.text(self.goal_location[1] + 0.5, self.goal_location[0] + 0.5, 'G',
+                ha='center', va='center', fontsize=16, color='red')
+
+            handles = [
+            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=8, label='Agent (A)'),
+            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Item (I)'),
+            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=8, label='Goal (G)')
+            ]
+            self.ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
+
+            plt.subplots_adjust(right=0.75, left=0.1)
+            self.fig.canvas.draw_idle()
+         
 
     def step(self, action: int) -> tuple[float, State]:
         next_state = self.get_next_state(action)
         self.animate()
+        plt.pause(0.5)  # Pause to allow visualization of the movement
         reward = self.get_reward(next_state)
         return reward, next_state
 
@@ -125,3 +158,26 @@ class ItemObject(GridObject):
     def __init__(self, location: tuple[int, int] | None = None):
         super().__init__(location)
         self.icon = "I"
+
+
+# Import Agent inside the function where it's used
+def main():
+    # Import Agent here to avoid circular import at the top level
+    from agent import Agent
+
+    # Create the environment
+    env = Environment(n=5)
+
+    # Initialize the agent
+    agent = Agent()
+    agent.qval_matrix = np.zeros((5, 5, 4))  # Dummy matrix for the example
+
+    # Example of using the step function with animation
+    env.initialize_for_new_episode()
+    for _ in range(10):  # Assuming a maximum of 10 steps for demonstration
+        possible_actions = env.get_available_actions()
+        action = agent.choose_action(possible_actions, env.get_state(), agent.qval_matrix, is_training=True)
+        env.step(action)  # Each step will now trigger an animation update
+
+if __name__ == "__main__":
+    main()
