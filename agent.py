@@ -17,7 +17,7 @@ def save_trained_qval_matrix(trained_qval_matrix: np.ndarray, item: ItemObject) 
         pickle.dump(trained_qval_matrix, f)
 
 
-class Trainer:
+class Agent:
     def __init__(
         self,
         alpha: float = 0.3,
@@ -82,12 +82,12 @@ class Trainer:
             *current_state.agent_location, action
         ] += qval_difference
 
-    def choose_action(self, possible_actions: list[int], state: State, qval_matrix: np.ndarray,) -> int:
+    def choose_action(self, possible_actions: list[int], state: State, qval_matrix: np.ndarray, is_training: bool = True) -> int:
         """
         Epislon greedy method to choose action
         """
         agent_location_x, agent_location_y = state.agent_location
-        if random.random() < self.epsilon:
+        if not is_training and random.random() < self.epsilon:
             return random.choice(possible_actions)
         else:
             action_to_qval = list(zip(possible_actions, qval_matrix[agent_location_x, agent_location_y, possible_actions]))
