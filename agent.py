@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import random
 
 from env import Environment, ItemObject
 from state import State
