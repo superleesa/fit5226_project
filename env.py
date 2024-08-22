@@ -27,7 +27,10 @@ class Environment:
     def get_state(self):
         return State(self.agent.location, self.item.location)
 
-    def get_available_actions(self):
+    def get_available_actions(self) -> list[int]:
+        """
+        Assumes that the current state is not the goal state
+        """
         # logic to determine available actions
         actions = []
         x, y = self.agent.location
