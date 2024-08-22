@@ -84,12 +84,12 @@ class Environment:
         # Plotting the agent, item, and goal
         self.ax.text(self.agent.location[1] + 0.5, self.agent.location[0] + 0.5, 'A',
             ha='center', va='center', fontsize=16, color='blue')
-        self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'I',
+        self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'G',
             ha='center', va='center', fontsize=16, color='green')
 
         handles = [
             plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=8, label='Agent (A)'),
-            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Item (I)'),
+            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Dummy Goal (G)'),
         ]
         self.ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
 
