@@ -52,9 +52,9 @@ class Environment:
         actions = []
         current_state = self.get_state()
         x, y = current_state.agent_location
-        has_item = current_state.has_item
         
-        if has_item and current_state.agent_location == current_state.item_location:
+        if current_state.agent_location == current_state.item_location:
+            # item reached state
             if x > 0:
                 actions.append(Action.GOT_ITEM_LEFT)  # left
             if x < self.n - 1:
