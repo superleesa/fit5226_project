@@ -88,11 +88,14 @@ class Environment:
 
         return actions
 
-    def get_reward(self, state: State):
+    def get_reward(self, prev_state: State, current_state: State):
         # TODO: technically, i think it should accept (prev state, action, next state)
-        if state.agent_location == state.item_location:
+        
+        # we ensure that Agent reveives item collection reward iff it has collected the item and is at the item location
+        # or else, in the item collected space, agent receives high reward by going back to where the item was (which is already collected so wrong)
+        if prev_state.agent_location == current_state.item_location and current_state.agent_location == current_state.item_location and current_state.has_item:
             return self.item_state_reward
-        elif self.is_goal_state(state):
+        elif self.is_goal_state(current_state):
             return self.goal_state_reward
         else:
             return self.time_penalty
@@ -107,7 +110,7 @@ class Environment:
         return self.state
 
     def is_goal_state(self, state: State) -> bool:
-        return self.goal_location == state.agent_location
+        return self.state.has_item and self.goal_location == state.agent_location
 
     def animate(self):
         self.ax.clear()
@@ -161,9 +164,10 @@ class Environment:
         plt.pause(0.5)  # Pause to allow visualization of the movement
 
     def step(self, action: Action) -> tuple[float, State]:
+        prev_state = self.get_state()
         next_state = self.get_next_state(action)
         self.animate()
-        reward = self.get_reward(next_state)
+        reward = self.get_reward(prev_state, next_state)
         return reward, next_state
 
 
