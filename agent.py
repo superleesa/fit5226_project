@@ -91,10 +91,10 @@ class Agent:
             if self.save_weights:
                 save_trained_qval_matrix(qval_matrix, item)
 
-    def train_one_intermediate_item(self, item: ItemObject | None = None) -> np.ndarray:
+    def train_one_intermediate_item(self, item: ItemObject) -> QValueMatrix:
         env = Environment(n=5, item=item)
 
-        qval_matrix = np.zeros((env.n, env.n, 4))  # 4 for 4 actions
+        qval_matrix = QValueMatrix(self.grid_size[0], self.grid_size[1], len(Action), item.get_location(), env.goal_location)  # TODO: add goal_location in env
 
         for episode in range(self.num_episode_per_intermediate_item):
             env.initialize_for_new_episode()
