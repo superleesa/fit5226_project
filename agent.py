@@ -105,9 +105,9 @@ class Agent:
 
 
 class Trainer:
-    def __init__(self, agent: Agent, environment: list[Environment]) -> None:
+    def __init__(self, agent: Agent, envs: list[Environment]) -> None:
         self.agent = agent
-        self.environments = environment
+        self.environments = envs
 
     def train_one(self, num_episodes: int, env: Environment) -> QValueMatrix:
         """
