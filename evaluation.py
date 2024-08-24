@@ -41,9 +41,9 @@ class Evaluation:
         """
         Visualize the path after trained
         """
-        envs_copy = self.envs.copy()
-        random.shuffle(envs_copy)
-        for env in envs_copy[:num_of_vis]:
+        indices = random.sample(range(1, self.n*self.n), num_of_vis)
+        for index in indices:
+            env = self.envs[index]
             env.set_with_animation(True)
             env.initialize_for_new_episode()
 
@@ -52,7 +52,7 @@ class Evaluation:
             while not env.is_goal_state(current_state):
                 possible_actions = env.get_available_actions()
                 x, y = current_state.agent_location
-                action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[self.n*x+y], is_training=False)
+                action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[index], is_training=False)
                 _, next_state = env.step(action)
                 current_state = next_state
     
@@ -83,7 +83,7 @@ class Evaluation:
                 num_steps = 0
                 while not env.is_goal_state(current_state):
                     possible_actions = env.get_available_actions()
-                    x, y = current_state.agent_location
+                    x, y = current_state.item_location
                     action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[self.n*x+y], is_training=False)
                     _, next_state = env.step(action)
                     current_state = next_state
@@ -92,7 +92,6 @@ class Evaluation:
                 # Calculate and accumulate the score
                 total_score += self.calculate_metrics_score(shortest_distance, num_steps)
                 
-                print(self.calculate_metrics_score(shortest_distance, num_steps))
                 num_episodes += 1
 
         # Return the average score across all tests
@@ -103,8 +102,8 @@ if __name__ == "__main__":
     evl.run_train()
 
     # Conduct the performance test
-    # average_score = evl.performance_test()
-    # print(f"Average performance score (1 is the best): {average_score:.4f}")
+    average_score = evl.performance_test()
+    print(f"Average performance score (1 is the best): {average_score:.4f}")
 
     # visualize randomly the environments and show the steps of the agent
     evl.visualize()
