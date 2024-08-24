@@ -135,15 +135,15 @@ class Environment:
             return
         self.ax.clear()
         self.ax.set_xlim(0, self.n)
-        self.ax.set_ylim(self.n, 0)
+        self.ax.set_ylim(0, self.n)
         self.ax.set_xticks(np.arange(0, self.n + 1, 1))
         self.ax.set_yticks(np.arange(0, self.n + 1, 1))
         self.ax.grid(True)
 
         # Plotting the agent, item, and goal
         self.ax.text(
-            self.agent.location[1] + 0.5,
             self.agent.location[0] + 0.5,
+            self.agent.location[1] + 0.5,
             "A",
             ha="center",
             va="center",
@@ -151,8 +151,8 @@ class Environment:
             color="blue" if not self.agent.has_item else "purple",
         )
         self.ax.text(
-            self.item.location[1] + 0.5,
             self.item.location[0] + 0.5,
+            self.item.location[1] + 0.5,
             "I",
             ha="center",
             va="center",
@@ -160,8 +160,8 @@ class Environment:
             color="green",
         )
         self.ax.text(
-            self.goal_location[1] + 0.5,
             self.goal_location[0] + 0.5,
+            self.goal_location[1] + 0.5,
             "G",
             ha="center",
             va="center",
