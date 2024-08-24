@@ -70,24 +70,21 @@ class Environment:
         x, y = current_state.agent_location
 
         if current_state.agent_location == current_state.item_location:
-            # item reached state
-            if x > 0:
-                actions.append(Action.GOT_ITEM_LEFT)  # left
-            if x < self.n - 1:
-                actions.append(Action.GOT_ITEM_RIGHT)  # right
-            if y > 0:
-                actions.append(Action.GOT_ITEM_DOWN)  # down
-            if y < self.n - 1:
-                actions.append(Action.GOT_ITEM_UP)  # up
-        else:
-            if x > 0:
-                actions.append(Action.LEFT)  # left
-            if x < self.n - 1:
-                actions.append(Action.RIGHT)  # right
-            if y > 0:
-                actions.append(Action.DOWN)  # down
-            if y < self.n - 1:
-                actions.append(Action.UP)  # up
+            actions.append(Action.COLLECT)
+        
+        # note: technically speaking we know that whenever agent is at the item location, the only available (or, the most optimal) action is to collect the item
+        # however, according to the CE, we must ensure that 
+        # "the agent is supposed to learn (rather than being told) that
+        # once it has picked up the load it needs to move to the delivery point to complete its mission. ", 
+        # implyging that agent must be able to learn to "collect" instead of being told to collect (so add all possible actions)
+        if x > 0:
+            actions.append(Action.LEFT)  # left
+        if x < self.n - 1:
+            actions.append(Action.RIGHT)  # right
+        if y > 0:
+            actions.append(Action.DOWN)  # down
+        if y < self.n - 1:
+            actions.append(Action.UP)  # up
 
         return actions
 
@@ -283,20 +280,8 @@ class AgentObject(GridObject):
             self.location = (x, y - 1)  # down
         elif action == Action.UP:
             self.location = (x, y + 1)  # up
-        elif action == Action.GOT_ITEM_LEFT:
+        elif action == Action.COLLECT:
             self.has_item = True
-            self.location = (x - 1, y)
-        elif action == Action.GOT_ITEM_RIGHT:
-            self.has_item = True
-            self.location = (x + 1, y)
-        elif action == Action.GOT_ITEM_DOWN:
-            self.has_item = True
-            self.location = (x, y - 1)
-        elif action == Action.GOT_ITEM_UP:
-            self.has_item = True
-            self.location = (x, y + 1)
-        else:
-            raise ValueError(f"Invalid action: {action}")
 
 
 class ItemObject(GridObject):
