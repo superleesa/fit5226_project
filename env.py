@@ -70,7 +70,7 @@ class Environment:
         current_state = self.get_state()
         x, y = current_state.agent_location
 
-        if current_state.agent_location == current_state.item_location:
+        if current_state.agent_location == current_state.item_location and not current_state.has_item:
             actions.append(Action.COLLECT)
 
         # note: technically speaking we know that whenever agent is at the item location, the only available (or, the most optimal) action is to collect the item
