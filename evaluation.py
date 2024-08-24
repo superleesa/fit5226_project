@@ -41,8 +41,8 @@ class Evaluation:
         """
         Visualize the path after trained
         """
-        indices = random.sample(range(1, self.n*self.n), num_of_vis)
-        for index in indices:
+        env_indices = random.sample(range(1, self.n*self.n), num_of_vis)
+        for index in env_indices:
             env = self.envs[index]
             env.set_with_animation(True)
             env.initialize_for_new_episode()
@@ -51,7 +51,6 @@ class Evaluation:
             current_state = env.get_state()
             while not env.is_goal_state(current_state):
                 possible_actions = env.get_available_actions()
-                x, y = current_state.agent_location
                 action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[index], is_training=False)
                 _, next_state = env.step(action)
                 current_state = next_state
@@ -64,11 +63,11 @@ class Evaluation:
         total_score = 0
         for env in tqdm(self.envs):
             env.set_with_animation(False)
-            for locaiton in tqdm(generate_grid_location_list(self.n, self.n)):
-                if locaiton == env.item.location or locaiton == env.goal_location:
+            for agent_locaiton in tqdm(generate_grid_location_list(self.n, self.n)):
+                if agent_locaiton == env.item.location or agent_locaiton == env.goal_location:
                     continue
 
-                env.initialize_for_new_episode(agent_location=locaiton)
+                env.initialize_for_new_episode(agent_location=agent_locaiton)
                 start_location = env.agent.location  # Get the start location of the agent
                 item_location = env.item.location  # Get intermediate location of the item
 
@@ -83,8 +82,8 @@ class Evaluation:
                 num_steps = 0
                 while not env.is_goal_state(current_state):
                     possible_actions = env.get_available_actions()
-                    x, y = current_state.item_location
-                    action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[self.n*x+y], is_training=False)
+                    item_x, item_y = current_state.item_location
+                    action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[self.n*item_x+item_y], is_training=False)
                     _, next_state = env.step(action)
                     current_state = next_state
                     num_steps += 1
