@@ -79,7 +79,7 @@ class Environment:
         # TODO: technically, i think it should accept (prev state, action, next state)
         return self.goal_state_reward if self.is_goal_state(state) else self.time_penalty
 
-    def get_next_state(self, action: int) -> State:
+    def get_next_state(self, action: Action) -> State:
         self.agent.move(action)
         self.state = State(self.agent.location, self.item.location)
         return self.state
@@ -183,20 +183,34 @@ class AgentObject(GridObject):
     def __init__(self, location: tuple[int, int] | None = None) -> None:
         super().__init__(location)
         self.icon = "A"
+        self.has_item = False  # TODO: has_item of AgentObject and State must be synched somehow
 
-    def move(self, action: int) -> None:
+    def move(self, action: Action) -> None:
         # NOTE: assumes that action is valid (i.e. agent is not at the edge of the grid)
         if self.location is None:
             raise ValueError("Agent location is not set")
+        
         x, y = self.location
-        if action == 0:
+        if action == Action.LEFT:
             self.location = (x - 1, y)  # left
-        elif action == 1:
+        elif action == Action.RIGHT:
             self.location = (x + 1, y)  # right
-        elif action == 2:
+        elif action == Action.DOWN:
             self.location = (x, y - 1)  # down
-        elif action == 3:
+        elif action == Action.UP:
             self.location = (x, y + 1)  # up
+        elif action == Action.GOT_ITEM_LEFT:
+            self.has_item = True
+            self.location = (x - 1, y)
+        elif action == Action.GOT_ITEM_RIGHT:
+            self.has_item = True
+            self.location = (x + 1, y)
+        elif action == Action.GOT_ITEM_DOWN:
+            self.has_item = True
+            self.location = (x, y - 1)
+        elif action == Action.GOT_ITEM_UP:
+            self.has_item = True
+            self.location = (x, y + 1)
         else:
             raise ValueError(f"Invalid action: {action}")
 
