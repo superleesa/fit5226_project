@@ -89,7 +89,7 @@ def inference():
         if current_state.agent_location == current_state.item_location:
             # Agent picks up the item
             env.agent.has_item = True
-            env.item.location = None  # Remove item from the grid
+            env.state.has_item = False  # Remove item from the grid
         
         env.animate()  # Update the environment's animation       
 
