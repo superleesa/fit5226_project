@@ -12,7 +12,7 @@ GOAL_STATE_REWARD = 100
 
 class Environment:
     # NOTE: currently action is an integer, but we might want to change it to enum
-    def __init__(self, n=5, item=None, time_penalty=DEFAULT_TIME_PENALTY, goal_state_reward=GOAL_STATE_REWARD):
+    def __init__(self, n=5, item=None, time_penalty=DEFAULT_TIME_PENALTY, goal_state_reward=GOAL_STATE_REWARD) -> None:
         self.n = n
         self.time_penalty = time_penalty
         self.goal_state_reward = goal_state_reward
@@ -23,6 +23,7 @@ class Environment:
         if self.item.location is None:
             self.item.set_location_randomly(self.n, self.n)
 
+        self.state: State
         # TODO: possibly implmeent this if there are multiple GridObjects to check for
         # initialize grid and put grid objects on the grid
         # x_agent, y_agent = self.agent.location
@@ -33,14 +34,14 @@ class Environment:
 
         # Setup for animation
         self.fig, self.ax = plt.subplots(figsize=(8, 8))
-        self.initialize_for_new_episode()
 
-    def initialize_for_new_episode(self):
+    def initialize_for_new_episode(self) -> None:
         self.agent.set_location_randomly(self.n, self.n, [self.item.location])
+        self.state = State(self.agent.location, self.item.location)
         self.animate()  # Initial drawing of the grid
 
-    def get_state(self):
-        return State(self.agent.location, self.item.location)
+    def get_state(self) -> State:
+        return self.state
 
     def get_available_actions(self) -> list[int]:
         """
@@ -66,7 +67,8 @@ class Environment:
 
     def get_next_state(self, action: int) -> State:
         self.agent.move(action)
-        return State(self.agent.location, self.item.location)
+        self.state = State(self.agent.location, self.item.location)
+        return self.state
 
     def is_goal_state(self, state: State) -> bool:
         return (
