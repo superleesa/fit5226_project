@@ -179,6 +179,11 @@ class GridObject(ABC):
 
         self.location = location
         return location
+    
+    def get_location(self) -> tuple[int, int]:
+        if self.location is None:
+            raise ValueError("Location is not set")
+        return self.location
 
 
 class AgentObject(GridObject):
