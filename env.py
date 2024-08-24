@@ -208,7 +208,7 @@ class InferenceEnvironment(Environment):
         # Plotting the agent, item, and goal
         self.ax.text(self.agent.location[1] + 0.5, self.agent.location[0] + 0.5, 'A',
             ha='center', va='center', fontsize=16, color='blue')
-        if self.item.has_item:  ## Plot item if it has not been collected
+        if self.state.has_item:  ## Plot item if it has not been collected
             self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'I',
                 ha='center', va='center', fontsize=16, color='green')
         self.ax.text(self.goal_location[1] + 0.5, self.goal_location[0] + 0.5, 'G',
