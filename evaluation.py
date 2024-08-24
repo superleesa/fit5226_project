@@ -19,7 +19,7 @@ class Evaluation:
         Trains the agent in the environment and returns the trained agent.
         """
         trainer = Trainer(self.agent, self.envs)
-        trainer.train_for_all_items()
+        trainer.train()
 
     @staticmethod
     def calculate_manhattan_distance(start_location: tuple[int, int], goal_location: tuple[int, int]) -> int:

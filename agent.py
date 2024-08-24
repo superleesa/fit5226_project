@@ -109,7 +109,7 @@ class Trainer:
         self.agent = agent
         self.environments = environment
 
-    def train(self, num_episodes: int, env: Environment) -> QValueMatrix:
+    def train_one(self, num_episodes: int, env: Environment) -> QValueMatrix:
         """
         Conducts training for a given number of episodes.
         """
@@ -127,14 +127,14 @@ class Trainer:
         
         return qval_matrix
 
-    def train_for_all_items(self) -> None:
+    def train(self) -> None:
         """
         We are training for all "goal location" in the grid; so indivisual state consists of x, y, goal_x, goal_y, technically speaking.
         However, to ensure that the agent samples from all possible goal locations fairly, we will separately train for all possible goal locations.
         """
         
         for env in self.environments:
-            qval_matrix = self.train(self.agent.num_episode_per_intermediate_item, env)
+            qval_matrix = self.train_one(self.agent.num_episode_per_intermediate_item, env)
             
             # Store the trained Q-value matrix in the agent
             self.agent.trained_qval_matrices.append(qval_matrix)

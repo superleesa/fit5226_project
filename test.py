@@ -30,4 +30,4 @@ if __name__ == "__main__":
     all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
     envs = [Environment(item = item, with_animation=True) for item in all_items]
     trainer = Trainer(agent, envs)
-    trainer.train_for_all_items()
+    trainer.train()
