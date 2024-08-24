@@ -84,40 +84,6 @@ class Agent:
         
         self.trained_qval_matrices: list[QValueMatrix] = []
     
-    def train(self) -> None:
-        """
-        We are training for all "goal location" in the grid; so indivisual state consists of x, y, goal_x, goal_y, technically speaking.
-        However, to ensure that the agent samples from all possible goal locations fairly, we will separately train for all possible goal locations.
-        """
-        item_grid_locations = generate_grid_location_list(self.grid_size[0], self.grid_size[1])
-        all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
-        for item in all_items:
-            qval_matrix = self.train_one_intermediate_item(item)
-            self.trained_qval_matrices.append(qval_matrix)
-            if self.save_weights:
-                save_trained_qval_matrix(qval_matrix, item)
-
-    def train_one_intermediate_item(self, item: ItemObject) -> QValueMatrix:
-        env = Environment(n=5, item=item)
-
-        qval_matrix = QValueMatrix(self.grid_size[0], self.grid_size[1], len(Action))
-
-        for episode in range(self.num_episode_per_intermediate_item):
-            env.initialize_for_new_episode()
-            current_state = env.get_state()
-            while True:
-                if env.is_goal_state(current_state):
-                    break
-                
-                # TODO: i think we don't need to keep control of the current state (env already has within it)
-                possible_actions = env.get_available_actions()
-                action = self.choose_action(possible_actions, current_state, qval_matrix)
-                reward, next_state = env.step(action)
-                self.update(current_state, next_state, reward, action, qval_matrix)
-                current_state = next_state
-        
-        return qval_matrix
-    
     def update(self, current_state: State, next_state: State, reward: float, action: Action, qval_matrix: QValueMatrix) -> None:
         qval_difference: float = self.alpha * (
             reward
@@ -130,8 +96,48 @@ class Agent:
         """
         Epislon greedy method to choose action
         """
-        if not is_training and random.random() < self.epsilon:
+        if is_training and random.random() < self.epsilon:
             return random.choice(possible_actions)
         else:
             action_to_qval = list(zip(possible_actions, qval_matrix.get_state_qvals(state, actions=possible_actions)))
+            random.shuffle(action_to_qval)  # to break ties randomly
             return max(action_to_qval, key=lambda x: x[1])[0]
+
+
+class Trainer:
+    def __init__(self, agent: Agent, envs: list[Environment]) -> None:
+        self.agent = agent
+        self.environments = envs
+
+    def train_one(self, num_episodes: int, env: Environment) -> QValueMatrix:
+        """
+        Conducts training for a given number of episodes.
+        """
+        qval_matrix = QValueMatrix(self.agent.grid_size[0], self.agent.grid_size[1], len(Action))
+
+        for episode in range(num_episodes):
+            env.initialize_for_new_episode()
+            current_state = env.get_state()
+            while not env.is_goal_state(current_state):
+                possible_actions = env.get_available_actions()
+                action = self.agent.choose_action(possible_actions, current_state, qval_matrix)
+                reward, next_state = env.step(action)
+                self.agent.update(current_state, next_state, reward, action, qval_matrix)
+                current_state = next_state
+        
+        return qval_matrix
+
+    def train(self) -> None:
+        """
+        We are training for all "goal location" in the grid; so indivisual state consists of x, y, goal_x, goal_y, technically speaking.
+        However, to ensure that the agent samples from all possible goal locations fairly, we will separately train for all possible goal locations.
+        """
+        
+        for env in self.environments:
+            qval_matrix = self.train_one(self.agent.num_episode_per_intermediate_item, env)
+            
+            # Store the trained Q-value matrix in the agent
+            self.agent.trained_qval_matrices.append(qval_matrix)
+            
+            if self.agent.save_weights:
+                save_trained_qval_matrix(qval_matrix, env.item)

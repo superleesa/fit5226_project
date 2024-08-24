@@ -10,8 +10,8 @@ from state import State
 
 
 DEFAULT_TIME_PENALTY = -1
-GOAL_STATE_REWARD = 200
-DEFAULT_ITEM_REWARD = 100
+GOAL_STATE_REWARD = 300
+DEFAULT_ITEM_REWARD = 200
 
 
 class Environment:
@@ -19,7 +19,7 @@ class Environment:
         self,
         n: int = 5,
         item: ItemObject | None = None,
-        goal_location: tuple[int, int] = (4, 4),
+        goal_location: tuple[int, int] = (4, 0),
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
@@ -48,20 +48,26 @@ class Environment:
 
         # Setup for animation
         self.with_animation = with_animation
-        self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
 
-    def initialize_for_new_episode(self) -> None:
-        self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()])
+    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None) -> None:
+        if agent_location is None:
+            self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()]) 
+        else:
+            self.agent.location = agent_location
         self.agent.has_item = False
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
             has_item=self.agent.has_item,
         )
+        self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
         self.animate()  # Initial drawing of the grid
 
     def get_state(self) -> State:
         return self.state
+    
+    def set_with_animation(self, with_animation: bool) -> None:
+        self.with_animation = with_animation
 
     def get_available_actions(self) -> list[Action]:
         """
@@ -129,15 +135,15 @@ class Environment:
             return
         self.ax.clear()
         self.ax.set_xlim(0, self.n)
-        self.ax.set_ylim(self.n, 0)
+        self.ax.set_ylim(0, self.n)
         self.ax.set_xticks(np.arange(0, self.n + 1, 1))
         self.ax.set_yticks(np.arange(0, self.n + 1, 1))
         self.ax.grid(True)
 
         # Plotting the agent, item, and goal
         self.ax.text(
-            self.agent.location[1] + 0.5,
             self.agent.location[0] + 0.5,
+            self.agent.location[1] + 0.5,
             "A",
             ha="center",
             va="center",
@@ -145,8 +151,8 @@ class Environment:
             color="blue" if not self.agent.has_item else "purple",
         )
         self.ax.text(
-            self.item.location[1] + 0.5,
             self.item.location[0] + 0.5,
+            self.item.location[1] + 0.5,
             "I",
             ha="center",
             va="center",
@@ -154,8 +160,8 @@ class Environment:
             color="green",
         )
         self.ax.text(
-            self.goal_location[1] + 0.5,
             self.goal_location[0] + 0.5,
+            self.goal_location[1] + 0.5,
             "G",
             ha="center",
             va="center",
