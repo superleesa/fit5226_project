@@ -96,10 +96,11 @@ class Agent:
         """
         Epislon greedy method to choose action
         """
-        if not is_training and random.random() < self.epsilon:
+        if is_training and random.random() < self.epsilon:
             return random.choice(possible_actions)
         else:
             action_to_qval = list(zip(possible_actions, qval_matrix.get_state_qvals(state, actions=possible_actions)))
+            random.shuffle(action_to_qval)  # to break ties randomly
             return max(action_to_qval, key=lambda x: x[1])[0]
 
 
