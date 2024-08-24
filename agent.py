@@ -20,10 +20,13 @@ class QValueMatrix:
         self.start_to_item = np.zeros(x_max, y_max, num_max_actions)
         self.item_to_goal = np.zeros(x_max, y_max, num_max_actions)
     
-    def get_state_qvals(self, state: State, actions: list[Action] = []) -> np.ndarray:
+    def get_state_qvals(self, state: State, actions: list[Action] | Action = []) -> np.ndarray:
         """
         Returns Q(S), or Q(S, A) if actions are provided
         """
+        if isinstance(actions, Action):
+            actions = [actions]
+        
         x, y = state.agent_location
         if state.has_item:
             return self.item_to_goal[x, y] if not actions else self.item_to_goal[x, y, [action.value for action in actions]]
