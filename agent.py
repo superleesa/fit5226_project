@@ -3,7 +3,7 @@ import pickle
 import random
 
 from actions import Action
-from env import Environment, ItemObject
+from env import Environment, InferenceEnvironment, ItemObject
 from state import State
 
 
@@ -77,25 +77,17 @@ def inference():
     
     # Start from the initial state with random agent and item locations
     current_state = env.get_state()
+            
+    while not env.is_goal_state(current_state):
+        possible_actions = env.get_available_actions()
+        action = env.agent.choose_action(possible_actions, current_state, qval_matrix, is_training=False)
+        _, next_state = env.step(action)
+        current_state = next_state
 
-    goal_reached = False
-
-    while not goal_reached:
         if current_state.agent_location == current_state.item_location:
             # Agent picks up the item
             env.agent.has_item = True
             env.item.location = None  # Remove item from the grid
-            
-        # Check if goal is reached (if item is picked up, goal location is at bottom-right)
-        if env.agent.has_item:
-            env.goal_location = (4, 4)
-            goal_reached = env.is_goal_state(current_state)
-        else:
-            # Move towards the item if not already picked up
-            possible_actions = env.get_available_actions()
-            action = env.agent.choose_action(possible_actions, current_state, qval_matrix, is_training=False)
-            _, next_state = env.step(action)
-            current_state = next_state
         
         env.animate()  # Update the environment's animation       
 
