@@ -162,9 +162,11 @@ class InferenceEnvironment(Environment):
     environment used during inference, that represent the environement of the actual problem world
     """
 
-    def __init__(self, n: int = 5, item: ItemObject | None = None):
+    def __init__(self, n: int = 5, item: ItemObject | None = None, goal_location: tuple[int, int] = (4, 4)) -> None:
         super().__init__(
-            n, item, DEFAULT_TIME_PENALTY, GOAL_STATE_REWARD
+            n,
+            item,
+            goal_location=goal_location,
         )  # note: during inference, we don't use rewards
         self.goal_location = (self.n - 1, self.n - 1)  # Set the goal state location to (n-1, n-1)
 
