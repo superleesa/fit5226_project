@@ -120,13 +120,12 @@ class Agent:
         )
         qval_matrix.increase_qval(current_state, action, qval_difference)
 
-    def choose_action(self, possible_actions: list[int], state: State, qval_matrix: np.ndarray, is_training: bool = True) -> int:
+    def choose_action(self, possible_actions: list[Action], state: State, qval_matrix: QValueMatrix, is_training: bool = True) -> Action:
         """
         Epislon greedy method to choose action
         """
-        agent_location_x, agent_location_y = state.agent_location
         if not is_training and random.random() < self.epsilon:
             return random.choice(possible_actions)
         else:
-            action_to_qval = list(zip(possible_actions, qval_matrix[agent_location_x, agent_location_y, possible_actions]))
+            action_to_qval = list(zip(possible_actions, qval_matrix.get_state_qvals(state, actions=possible_actions)))
             return max(action_to_qval, key=lambda x: x[1])[0]
