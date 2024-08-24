@@ -34,6 +34,9 @@ class QValueMatrix:
             return self.start_to_item[x, y] if not actions else self.start_to_item[x, y, [action.value for action in actions]]
     
     def update_qval(self, state: State, action: Action, new_qval: float) -> None:
+        """
+        Updates the Q value for a state-action pair, i.e. Q(S, A) = new_qval
+        """
         x, y = state.agent_location
         if state.has_item:
             self.item_to_goal[x, y, action.value] = new_qval
@@ -41,6 +44,9 @@ class QValueMatrix:
             self.start_to_item[x, y, action.value] = new_qval
     
     def increase_qval(self, state: State, action: Action, increment: float) -> None:
+        """
+        Increases the Q value for a state-action pair, i.e. Q(S, A) += increment
+        """
         x, y = state.agent_location
         if state.has_item:
             self.item_to_goal[x, y, action.value] += increment

@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class Action(Enum):
+    # NOTE: QValue matrix used these action values as their indices
     LEFT = 0
     RIGHT = 1
     DOWN = 2
