@@ -9,7 +9,7 @@ from env import Environment
 class Evaluation:
     def __init__(self, n=5) -> None:
         self.n = n
-        self.agent = Agent()
+        self.agent = Agent(num_episode_per_intermediate_item=1000)
         item_grid_locations = generate_grid_location_list(self.n, self.n)
         all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
         self.envs = [Environment(item = item, with_animation=False) for item in all_items]
@@ -90,7 +90,7 @@ class Evaluation:
                     num_steps += 1
 
                 # Calculate and accumulate the score
-                # total_score += self.calculate_metrics_score(shortest_distance, num_steps)
+                total_score += self.calculate_metrics_score(shortest_distance, num_steps)
                 
                 print(self.calculate_metrics_score(shortest_distance, num_steps))
                 num_episodes += 1
@@ -99,8 +99,6 @@ class Evaluation:
         return total_score / num_episodes
     
 if __name__ == "__main__":
-    # print(generate_grid_location_list(3, 3))
-
     evl = Evaluation()
     evl.run_train()
 
