@@ -2,9 +2,9 @@ import numpy as np
 import pickle
 import random
 
-from actions import Action
-from env import Environment, ItemObject
-from state import State
+from fit5226_project.actions import Action
+from fit5226_project.env import Environment, ItemObject
+from fit5226_project.state import State
 
 
 class QValueMatrix:

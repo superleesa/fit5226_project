@@ -5,8 +5,8 @@ from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
 
-from actions import Action
-from state import State
+from fit5226_project.actions import Action
+from fit5226_project.state import State
 
 
 DEFAULT_TIME_PENALTY = -1

@@ -2,8 +2,8 @@ import random
 
 from tqdm import tqdm
 
-from agent import Agent, Trainer, ItemObject, generate_grid_location_list
-from env import Environment
+from fit5226_project.agent import Agent, Trainer, ItemObject, generate_grid_location_list
+from fit5226_project.env import Environment
 
 
 class Evaluation:

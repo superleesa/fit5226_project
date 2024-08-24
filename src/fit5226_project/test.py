@@ -1,10 +1,10 @@
 import numpy as np
-from env import Environment
+from fit5226_project.env import Environment
 
 # Import Agent inside the function where it's used
 def test_train_viz():
     # Import Agent here to avoid circular import at the top level
-    from agent import Agent
+    from fit5226_project.agent import Agent
 
     # Create the environment
     env = Environment(n=5)
@@ -23,7 +23,7 @@ def test_train_viz():
 
 if __name__ == "__main__":
     # test_train_viz()
-    from agent import Agent, Trainer, ItemObject, generate_grid_location_list
+    from fit5226_project.agent import Agent, Trainer, ItemObject, generate_grid_location_list
 
     agent = Agent()
     item_grid_locations = generate_grid_location_list(5, 5)
