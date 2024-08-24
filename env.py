@@ -217,7 +217,7 @@ class InferenceEnvironment(Environment):
         handles = [
         plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=8, label='Agent (A)'),
         plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Item (I)'),
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='purple', markersize=8, label='Agent (A) with item')
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='purple', markersize=8, label='Agent (A) with item'),
         plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=8, label='Goal (G)')
         ]
         self.ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
