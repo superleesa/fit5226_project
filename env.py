@@ -16,7 +16,8 @@ DEFAULT_ITEM_REWARD = 100
 
 class Environment:
     def __init__(
-        self, n: int = 5,
+        self,
+        n: int = 5,
         item: ItemObject | None = None,
         goal_location: tuple[int, int] = (4, 4),
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
@@ -49,7 +50,11 @@ class Environment:
 
     def initialize_for_new_episode(self) -> None:
         self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()])
-        self.state = State(agent_location=self.agent.get_location(), item_location=self.item.get_location(), has_item=self.agent.has_item)
+        self.state = State(
+            agent_location=self.agent.get_location(),
+            item_location=self.item.get_location(),
+            has_item=self.agent.has_item,
+        )
         self.animate()  # Initial drawing of the grid
 
     def get_state(self) -> State:
@@ -63,7 +68,7 @@ class Environment:
         actions = []
         current_state = self.get_state()
         x, y = current_state.agent_location
-        
+
         if current_state.agent_location == current_state.item_location:
             # item reached state
             if x > 0:
@@ -83,7 +88,7 @@ class Environment:
                 actions.append(Action.DOWN)  # down
             if y < self.n - 1:
                 actions.append(Action.UP)  # up
-        
+
         return actions
 
     def get_reward(self, state: State):
@@ -97,7 +102,11 @@ class Environment:
 
     def get_next_state(self, action: Action) -> State:
         self.agent.move(action)
-        self.state = State(agent_location=self.agent.get_location(), item_location=self.item.get_location(), has_item=self.agent.has_item)
+        self.state = State(
+            agent_location=self.agent.get_location(),
+            item_location=self.item.get_location(),
+            has_item=self.agent.has_item,
+        )
         return self.state
 
     def is_goal_state(self, state: State) -> bool:
@@ -112,21 +121,35 @@ class Environment:
         self.ax.grid(True)
 
         # Plotting the agent, item, and goal
-        self.ax.text(self.agent.location[1] + 0.5, self.agent.location[0] + 0.5, 'A',
-            ha='center', va='center', fontsize=16, color='blue')
-        self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'G',
-            ha='center', va='center', fontsize=16, color='green')
+        self.ax.text(
+            self.agent.location[1] + 0.5,
+            self.agent.location[0] + 0.5,
+            "A",
+            ha="center",
+            va="center",
+            fontsize=16,
+            color="blue",
+        )
+        self.ax.text(
+            self.item.location[1] + 0.5,
+            self.item.location[0] + 0.5,
+            "G",
+            ha="center",
+            va="center",
+            fontsize=16,
+            color="green",
+        )
 
         handles = [
-            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=8, label='Agent (A)'),
-            plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Dummy Goal (G)'),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", markersize=8, label="Agent (A)"),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="green", markersize=8, label="Dummy Goal (G)"),
         ]
-        self.ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
+        self.ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1, 0.5))
 
         plt.subplots_adjust(right=0.75, left=0.1)
         self.fig.canvas.draw_idle()
         plt.pause(0.5)  # Pause to allow visualization of the movement
-         
+
     def step(self, action: Action) -> tuple[float, State]:
         next_state = self.get_next_state(action)
         self.animate()
@@ -138,8 +161,11 @@ class InferenceEnvironment(Environment):
     """
     environment used during inference, that represent the environement of the actual problem world
     """
+
     def __init__(self, n: int = 5, item: ItemObject | None = None):
-        super().__init__(n, item, DEFAULT_TIME_PENALTY, GOAL_STATE_REWARD)  # note: during inference, we don't use rewards
+        super().__init__(
+            n, item, DEFAULT_TIME_PENALTY, GOAL_STATE_REWARD
+        )  # note: during inference, we don't use rewards
         self.goal_location = (self.n - 1, self.n - 1)  # Set the goal state location to (n-1, n-1)
 
     def animate(self):
@@ -151,19 +177,40 @@ class InferenceEnvironment(Environment):
         self.ax.grid(True)
 
         # Plotting the agent, item, and goal
-        self.ax.text(self.agent.location[1] + 0.5, self.agent.location[0] + 0.5, 'A',
-            ha='center', va='center', fontsize=16, color='blue')
-        self.ax.text(self.item.location[1] + 0.5, self.item.location[0] + 0.5, 'I',
-            ha='center', va='center', fontsize=16, color='green')
-        self.ax.text(self.goal_location[1] + 0.5, self.goal_location[0] + 0.5, 'G',
-            ha='center', va='center', fontsize=16, color='red')
+        self.ax.text(
+            self.agent.location[1] + 0.5,
+            self.agent.location[0] + 0.5,
+            "A",
+            ha="center",
+            va="center",
+            fontsize=16,
+            color="blue",
+        )
+        self.ax.text(
+            self.item.location[1] + 0.5,
+            self.item.location[0] + 0.5,
+            "I",
+            ha="center",
+            va="center",
+            fontsize=16,
+            color="green",
+        )
+        self.ax.text(
+            self.goal_location[1] + 0.5,
+            self.goal_location[0] + 0.5,
+            "G",
+            ha="center",
+            va="center",
+            fontsize=16,
+            color="red",
+        )
 
         handles = [
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', markersize=8, label='Agent (A)'),
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='green', markersize=8, label='Item (I)'),
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=8, label='Goal (G)')
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", markersize=8, label="Agent (A)"),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="green", markersize=8, label="Item (I)"),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="red", markersize=8, label="Goal (G)"),
         ]
-        self.ax.legend(handles=handles, loc='center left', bbox_to_anchor=(1, 0.5))
+        self.ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1, 0.5))
 
         plt.subplots_adjust(right=0.75, left=0.1)
         self.fig.canvas.draw_idle()
@@ -173,7 +220,9 @@ class InferenceEnvironment(Environment):
 class GridObject(ABC):
     def __init__(self, location: tuple[int, int] | None = None) -> None:
         self.icon: str
-        self.location = location  # NOTE: location is a tuple of (x, y) where x and y are coordinates on the grid (not indices)
+        self.location = (
+            location  # NOTE: location is a tuple of (x, y) where x and y are coordinates on the grid (not indices)
+        )
 
     def set_location_randomly(
         self, max_x: int, max_y: int, disallowed_locations: list[tuple[int, int]] = []
@@ -191,7 +240,7 @@ class GridObject(ABC):
 
         self.location = location
         return location
-    
+
     def get_location(self) -> tuple[int, int]:
         if self.location is None:
             raise ValueError("Location is not set")
@@ -208,7 +257,7 @@ class AgentObject(GridObject):
         # NOTE: assumes that action is valid (i.e. agent is not at the edge of the grid)
         if self.location is None:
             raise ValueError("Agent location is not set")
-        
+
         x, y = self.location
         if action == Action.LEFT:
             self.location = (x - 1, y)  # left
