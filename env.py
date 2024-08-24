@@ -128,7 +128,7 @@ class Environment:
             ha="center",
             va="center",
             fontsize=16,
-            color="blue",
+            color="blue" if not self.agent.has_item else "purple",
         )
         self.ax.text(
             self.item.location[1] + 0.5,
@@ -149,8 +149,11 @@ class Environment:
             color="red",
         )
 
+        # TODO: add a message saying "item collected" if the agent has collected the item
+        # or else there is a single frame where the agent is at the same location twice,
+        # so it looks like the agent is not moving
         handles = [
-            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", markersize=8, label="Agent (A)"),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", markersize=8, label="Agent (A)") if not self.agent.has_item else plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="purple", markersize=8, label="Agent (A) with item"),
             plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="green", markersize=8, label="Item (I)"),
             plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="red", markersize=8, label="Goal (G)"),
         ]
