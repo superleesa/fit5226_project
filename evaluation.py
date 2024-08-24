@@ -12,7 +12,7 @@ class Evaluation:
         """
         environment = Environment(n=self.n, with_animation=self.with_animation) 
         agent = Agent()
-        trainer = Trainer(agent, environment)
+        trainer = Trainer(agent, environment, with_animation=self.with_animation)
         trainer.train_for_all_items()
         return environment, agent
 
@@ -39,7 +39,7 @@ class Evaluation:
         total_score = 0.0
 
         for _ in range(num_of_tests):
-            env.initialize_for_new_episode()
+            env.initialize_for_new_episode(with_animation=True)
 
             start_location = env.agent.location  # Get the start location of the agent
             item_location = env.item.location  # Get intermediate location of the item
@@ -55,15 +55,16 @@ class Evaluation:
             current_state = env.get_state()
             while not env.is_goal_state(current_state):
                 possible_actions = env.get_available_actions()
-                print(agent.trained_qval_matrices)
                 x, y = current_state.agent_location
                 action = agent.choose_action(possible_actions, current_state, agent.trained_qval_matrices[x+y], is_training=False)
                 _, next_state = env.step(action)
                 current_state = next_state
+            # print('shortest path: ', shortest_distance)
+            # print('path: ', env.num_steps)
 
             # Calculate and accumulate the score
             total_score += self.calculate_metrics_score(shortest_distance, env.num_steps)
-
+        
         # Return the average score across all tests
         return total_score / num_of_tests
 

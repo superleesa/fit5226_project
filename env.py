@@ -51,7 +51,7 @@ class Environment:
         self.with_animation = with_animation
         self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
 
-    def initialize_for_new_episode(self) -> None:
+    def initialize_for_new_episode(self, with_animation=True) -> None:
         self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()])
         self.agent.has_item = False
         self.state = State(
@@ -60,6 +60,8 @@ class Environment:
             has_item=self.agent.has_item,
         )
         self.num_steps = 0
+        self.with_animation = with_animation
+        self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
         self.animate()  # Initial drawing of the grid
 
     def get_state(self) -> State:

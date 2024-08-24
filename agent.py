@@ -104,9 +104,10 @@ class Agent:
 
 
 class Trainer:
-    def __init__(self, agent: Agent, environment: Environment) -> None:
+    def __init__(self, agent: Agent, environment: Environment, with_animation=True) -> None:
         self.agent = agent
         self.environment = environment
+        self.with_animation = with_animation
 
     def train(self, num_episodes: int) -> QValueMatrix:
         """
@@ -115,7 +116,7 @@ class Trainer:
         qval_matrix = QValueMatrix(self.agent.grid_size[0], self.agent.grid_size[1], len(Action))
 
         for episode in range(num_episodes):
-            self.environment.initialize_for_new_episode()
+            self.environment.initialize_for_new_episode(with_animation=self.with_animation)
             current_state = self.environment.get_state()
             while not self.environment.is_goal_state(current_state):
                 possible_actions = self.environment.get_available_actions()
