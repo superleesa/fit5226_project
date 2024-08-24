@@ -12,7 +12,7 @@ class QValueMatrix:
     Abstracts the Q-value matrix for the agent,
     to hide different q value matrices for different states and action handling
     """
-    def __init__(self, x_max: int, y_max: int, num_max_actions: int, item_location: tuple[int, int], goal_location: tuple[int, int]) -> None:
+    def __init__(self, x_max: int, y_max: int, num_max_actions: int) -> None:
         # TODO: check item_location and goal_location are within the grid
         # TODO: the way we are stroing the q values is memory inefficient in a way that
         # not all state will have all actions (we are storing 0 for those)
@@ -52,7 +52,7 @@ def generate_grid_location_list(max_x: int, max_y) -> list[tuple[int, int]]:
     return [(i, j) for i in range(max_x) for j in range(max_y)]
 
 
-def save_trained_qval_matrix(trained_qval_matrix: np.ndarray, item: ItemObject) -> None:
+def save_trained_qval_matrix(trained_qval_matrix: QValueMatrix, item: ItemObject) -> None:
     if item.location is None:
         raise ValueError("Item location is None")
     with open(f'qval_matrix{item.location[0]}_{item.location[1]}.pickle', "wb") as f:
@@ -76,7 +76,7 @@ class Agent:
         self.grid_size = grid_size
         self.save_weights = save_weights
         
-        self.trained_qval_matrices: list[np.ndarray] = []
+        self.trained_qval_matrices: list[QValueMatrix] = []
     
     def train(self) -> None:
         """
@@ -94,7 +94,7 @@ class Agent:
     def train_one_intermediate_item(self, item: ItemObject) -> QValueMatrix:
         env = Environment(n=5, item=item)
 
-        qval_matrix = QValueMatrix(self.grid_size[0], self.grid_size[1], len(Action), item.get_location(), env.goal_location)  # TODO: add goal_location in env
+        qval_matrix = QValueMatrix(self.grid_size[0], self.grid_size[1], len(Action))
 
         for episode in range(self.num_episode_per_intermediate_item):
             env.initialize_for_new_episode()
