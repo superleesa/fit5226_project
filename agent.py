@@ -17,8 +17,8 @@ class QValueMatrix:
         # TODO: the way we are stroing the q values is memory inefficient in a way that
         # not all state will have all actions (we are storing 0 for those)
         
-        self.start_to_item = np.zeros(x_max, y_max, num_max_actions)
-        self.item_to_goal = np.zeros(x_max, y_max, num_max_actions)
+        self.start_to_item = np.zeros((x_max, y_max, num_max_actions))
+        self.item_to_goal = np.zeros((x_max, y_max, num_max_actions))
     
     def get_state_qvals(self, state: State, actions: list[Action] | Action = []) -> np.ndarray:
         """
