@@ -1,5 +1,7 @@
+from __future__ import annotations
 from abc import ABC
 from random import randint
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,7 +15,7 @@ GOAL_STATE_REWARD = 100
 
 class Environment:
     # NOTE: currently action is an integer, but we might want to change it to enum
-    def __init__(self, n=5, item=None, time_penalty=DEFAULT_TIME_PENALTY, goal_state_reward=GOAL_STATE_REWARD) -> None:
+    def __init__(self, n: int = 5, item: ItemObject | None = None, time_penalty: int | float = DEFAULT_TIME_PENALTY, goal_state_reward: int | float = GOAL_STATE_REWARD) -> None:
         self.n = n
         self.time_penalty = time_penalty
         self.goal_state_reward = goal_state_reward
@@ -113,7 +115,7 @@ class Environment:
         self.fig.canvas.draw_idle()
         plt.pause(0.5)  # Pause to allow visualization of the movement
          
-    def step(self, action: int) -> tuple[float, State]:
+    def step(self, action: Action) -> tuple[float, State]:
         next_state = self.get_next_state(action)
         self.animate()
         reward = self.get_reward(next_state)
@@ -124,7 +126,7 @@ class InferenceEnvironment(Environment):
     """
     environment used during inference, that represent the environement of the actual problem world
     """
-    def __init__(self, n=5, item=None):
+    def __init__(self, n: int = 5, item: ItemObject | None = None):
         super().__init__(n, item, DEFAULT_TIME_PENALTY, GOAL_STATE_REWARD)  # note: during inference, we don't use rewards
         self.goal_location = (self.n - 1, self.n - 1)  # Set the goal state location to (n-1, n-1)
 
