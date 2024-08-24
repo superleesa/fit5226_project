@@ -50,6 +50,7 @@ class Environment:
 
     def initialize_for_new_episode(self) -> None:
         self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()])
+        self.agent.has_item = False
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
