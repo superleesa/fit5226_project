@@ -3,6 +3,7 @@ from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
 
+from actions import Action
 from state import State
 
 
@@ -43,22 +44,35 @@ class Environment:
     def get_state(self) -> State:
         return self.state
 
-    def get_available_actions(self) -> list[int]:
+    def get_available_actions(self) -> list[Action]:
         """
         Assumes that the current state is not the goal state
         """
         # logic to determine available actions
         actions = []
-        x, y = self.agent.location
-
-        if x > 0:
-            actions.append(0)  # left
-        if x < self.n - 1:
-            actions.append(1)  # right
-        if y > 0:
-            actions.append(2)  # down
-        if y < self.n - 1:
-            actions.append(3)  # up
+        current_state = self.get_state()
+        x, y = current_state.agent_location
+        has_item = current_state.has_item
+        
+        if has_item and current_state.agent_location == current_state.item_location:
+            if x > 0:
+                actions.append(Action.GOT_ITEM_LEFT)  # left
+            if x < self.n - 1:
+                actions.append(Action.GOT_ITEM_RIGHT)  # right
+            if y > 0:
+                actions.append(Action.GOT_ITEM_DOWN)  # down
+            if y < self.n - 1:
+                actions.append(Action.GOT_ITEM_UP)  # up
+        else:
+            if x > 0:
+                actions.append(Action.LEFT)  # left
+            if x < self.n - 1:
+                actions.append(Action.RIGHT)  # right
+            if y > 0:
+                actions.append(Action.DOWN)  # down
+            if y < self.n - 1:
+                actions.append(Action.UP)  # up
+        
         return actions
 
     def get_reward(self, state: State):
