@@ -168,5 +168,5 @@ class Agent:
             action = env.agent.choose_action(possible_actions, current_state, qval_matrix, is_training=False)
             _, next_state = env.step(action)
             current_state = next_state
-        
+            
         print("Goal Reached!")
