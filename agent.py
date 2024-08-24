@@ -71,7 +71,6 @@ def load_qval_matrix(item_location: tuple[int, int]) -> QValueMatrix:
 def inference():
     # Initialize the inference environment
     env = InferenceEnvironment(n=5)
-    env.item.set_location_randomly(env.n, env.n)
     item_location = env.item.location
     env.agent.set_location_randomly(env.n, env.n, disallowed_locations=[item_location])
     
