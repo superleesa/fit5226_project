@@ -133,16 +133,26 @@ class Environment:
         self.ax.text(
             self.item.location[1] + 0.5,
             self.item.location[0] + 0.5,
-            "G",
+            "I",
             ha="center",
             va="center",
             fontsize=16,
             color="green",
         )
+        self.ax.text(
+            self.goal_location[1] + 0.5,
+            self.goal_location[0] + 0.5,
+            "G",
+            ha="center",
+            va="center",
+            fontsize=16,
+            color="red",
+        )
 
         handles = [
             plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", markersize=8, label="Agent (A)"),
-            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="green", markersize=8, label="Dummy Goal (G)"),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="green", markersize=8, label="Item (I)"),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="red", markersize=8, label="Goal (G)"),
         ]
         self.ax.legend(handles=handles, loc="center left", bbox_to_anchor=(1, 0.5))
 
@@ -157,6 +167,7 @@ class Environment:
         return reward, next_state
 
 
+# TODO: we might not need this actually
 class InferenceEnvironment(Environment):
     """
     environment used during inference, that represent the environement of the actual problem world
