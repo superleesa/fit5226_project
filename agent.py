@@ -39,6 +39,13 @@ class QValueMatrix:
             self.item_to_goal[x, y, action.value] = new_qval
         else:
             self.start_to_item[x, y, action.value] = new_qval
+    
+    def increase_qval(self, state: State, action: Action, increment: float) -> None:
+        x, y = state.agent_location
+        if state.has_item:
+            self.item_to_goal[x, y, action.value] += increment
+        else:
+            self.start_to_item[x, y, action.value] += increment
 
 
 def generate_grid_location_list(max_x: int, max_y) -> list[tuple[int, int]]:
