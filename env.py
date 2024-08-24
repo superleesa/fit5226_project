@@ -10,14 +10,23 @@ from state import State
 
 
 DEFAULT_TIME_PENALTY = -1
-GOAL_STATE_REWARD = 100
+GOAL_STATE_REWARD = 200
+DEFAULT_ITEM_REWARD = 100
 
 
 class Environment:
-    # NOTE: currently action is an integer, but we might want to change it to enum
-    def __init__(self, n: int = 5, item: ItemObject | None = None, time_penalty: int | float = DEFAULT_TIME_PENALTY, goal_state_reward: int | float = GOAL_STATE_REWARD) -> None:
+    def __init__(
+        self, n: int = 5,
+        item: ItemObject | None = None,
+        goal_location: tuple[int, int] = (4, 4),
+        time_penalty: int | float = DEFAULT_TIME_PENALTY,
+        item_state_reward: int | float = DEFAULT_ITEM_REWARD,
+        goal_state_reward: int | float = GOAL_STATE_REWARD,
+    ) -> None:
         self.n = n
+        self.goal_location = goal_location
         self.time_penalty = time_penalty
+        self.item_state_reward = item_state_reward
         self.goal_state_reward = goal_state_reward
 
         self.item = ItemObject() if item is None else item
@@ -79,7 +88,12 @@ class Environment:
 
     def get_reward(self, state: State):
         # TODO: technically, i think it should accept (prev state, action, next state)
-        return self.goal_state_reward if self.is_goal_state(state) else self.time_penalty
+        if state.agent_location == state.item_location:
+            return self.item_state_reward
+        elif self.is_goal_state(state):
+            return self.goal_state_reward
+        else:
+            return self.time_penalty
 
     def get_next_state(self, action: Action) -> State:
         self.agent.move(action)
@@ -87,8 +101,7 @@ class Environment:
         return self.state
 
     def is_goal_state(self, state: State) -> bool:
-        return (
-            self.item.location == state.agent_location
+        return self.goal_location == state.agent_location
         )  # we treat the item location as the goal location
 
     def animate(self):
