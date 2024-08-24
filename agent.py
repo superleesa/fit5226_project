@@ -85,11 +85,6 @@ def inference():
         action = env.agent.choose_action(possible_actions, current_state, qval_matrix, is_training=False)
         _, next_state = env.step(action)
         current_state = next_state
-
-        if current_state.agent_location == current_state.item_location:
-            # Agent picks up the item
-            env.agent.has_item = True
-            env.state.has_item = False  # Remove item from the grid
         
         env.animate()  # Update the environment's animation       
 
