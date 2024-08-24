@@ -72,6 +72,8 @@ def inference():
     # Initialize the inference environment
     env = InferenceEnvironment(n=5)
     env.initialize_for_new_episode()
+    # Get the item location after initialization
+    item_location = env.item.get_location()
     # Load the pre-trained Q-value matrix for the random item location
     qval_matrix = load_qval_matrix(item_location)
     
