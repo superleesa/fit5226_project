@@ -21,4 +21,5 @@ def test_train_viz():
         env.step(action)  # Each step will now trigger an animation update
 
 if __name__ == "__main__":
+    pass
     # test_train_viz()

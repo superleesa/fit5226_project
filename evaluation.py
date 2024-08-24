@@ -55,8 +55,9 @@ class Evaluation:
             current_state = env.get_state()
             while not env.is_goal_state(current_state):
                 possible_actions = env.get_available_actions()
-                print(agent.trained_qval_matrices[0].item_to_goal)
-                action = agent.choose_action(possible_actions, current_state, agent.trained_qval_matrices, is_training=False)
+                print(agent.trained_qval_matrices)
+                x, y = current_state.agent_location
+                action = agent.choose_action(possible_actions, current_state, agent.trained_qval_matrices[x+y], is_training=False)
                 _, next_state = env.step(action)
                 current_state = next_state
 
