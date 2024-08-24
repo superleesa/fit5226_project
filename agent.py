@@ -2,8 +2,40 @@ import numpy as np
 import pickle
 import random
 
+from actions import Action
 from env import Environment, ItemObject
 from state import State
+
+
+class QValueMatrix:
+    """
+    Abstracts the Q-value matrix for the agent,
+    to hide different q value matrices for different states and action handling
+    """
+    def __init__(self, x_max: int, y_max: int, num_max_actions: int, item_location: tuple[int, int], goal_location: tuple[int, int]) -> None:
+        # TODO: check item_location and goal_location are within the grid
+        # TODO: the way we are stroing the q values is memory inefficient in a way that
+        # not all state will have all actions (we are storing 0 for those)
+        
+        self.start_to_item = np.zeros(x_max, y_max, num_max_actions)
+        self.item_to_goal = np.zeros(x_max, y_max, num_max_actions)
+    
+    def get_state_qvals(self, state: State, actions: list[Action] = []) -> np.ndarray:
+        """
+        Returns Q(S), or Q(S, A) if actions are provided
+        """
+        x, y = state.agent_location
+        if state.has_item:
+            return self.item_to_goal[x, y] if not actions else self.item_to_goal[x, y, [action.value for action in actions]]
+        else:
+            return self.start_to_item[x, y] if not actions else self.start_to_item[x, y, [action.value for action in actions]]
+    
+    def update_qval(self, state: State, action: Action, new_qval: float) -> None:
+        x, y = state.agent_location
+        if state.has_item:
+            self.item_to_goal[x, y, action.value] = new_qval
+        else:
+            self.start_to_item[x, y, action.value] = new_qval
 
 
 def generate_grid_location_list(max_x: int, max_y) -> list[tuple[int, int]]:
