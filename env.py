@@ -10,8 +10,8 @@ from state import State
 
 
 DEFAULT_TIME_PENALTY = -1
-GOAL_STATE_REWARD = 200
-DEFAULT_ITEM_REWARD = 100
+GOAL_STATE_REWARD = 300
+DEFAULT_ITEM_REWARD = 200
 
 
 class Environment:
@@ -19,7 +19,7 @@ class Environment:
         self,
         n: int = 5,
         item: ItemObject | None = None,
-        goal_location: tuple[int, int] = (4, 4),
+        goal_location: tuple[int, int] = (4, 0),
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
