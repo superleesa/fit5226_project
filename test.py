@@ -47,3 +47,4 @@ def performance_test(num_of_test = 100, n = 5):
 
 if __name__ == "__main__":
     test_train_viz()
+    # performance_test() 
