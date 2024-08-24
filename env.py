@@ -89,6 +89,9 @@ class Environment:
         return actions
 
     def get_reward(self, prev_state: State, current_state: State):
+        """
+        We can actually use self.state but to make it more explicit, we pass the states as an argument
+        """
         # TODO: technically, i think it should accept (prev state, action, next state)
         
         # we ensure that Agent reveives item collection reward iff it has collected the item and is at the item location
@@ -100,14 +103,16 @@ class Environment:
         else:
             return self.time_penalty
 
-    def get_next_state(self, action: Action) -> State:
+    def update_state(self, action: Action) -> None:
+        """
+        Be careful: this method updates the state of the environment
+        """
         self.agent.move(action)
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
             has_item=self.agent.has_item,
         )
-        return self.state
 
     def is_goal_state(self, state: State) -> bool:
         return self.state.has_item and self.goal_location == state.agent_location
@@ -165,7 +170,8 @@ class Environment:
 
     def step(self, action: Action) -> tuple[float, State]:
         prev_state = self.get_state()
-        next_state = self.get_next_state(action)
+        self.update_state(action)
+        next_state = self.get_state()
         self.animate()
         reward = self.get_reward(prev_state, next_state)
         return reward, next_state
