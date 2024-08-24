@@ -8,3 +8,5 @@ class State:
     # in that case we need to make a copy of the AgentObject / ItemObject
     agent_location: tuple[int, int]
     item_location: tuple[int, int]
+    
+    has_item: bool = False

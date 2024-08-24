@@ -2,15 +2,63 @@ import numpy as np
 import pickle
 import random
 
+from actions import Action
 from env import Environment, ItemObject
 from state import State
+
+
+class QValueMatrix:
+    """
+    Abstracts the Q-value matrix for the agent,
+    to hide different q value matrices for different states and action handling
+    """
+    def __init__(self, x_max: int, y_max: int, num_max_actions: int) -> None:
+        # TODO: check item_location and goal_location are within the grid
+        # TODO: the way we are stroing the q values is memory inefficient in a way that
+        # not all state will have all actions (we are storing 0 for those)
+        
+        self.start_to_item = np.zeros((x_max, y_max, num_max_actions))
+        self.item_to_goal = np.zeros((x_max, y_max, num_max_actions))
+    
+    def get_state_qvals(self, state: State, actions: list[Action] | Action = []) -> np.ndarray:
+        """
+        Returns Q(S), or Q(S, A) if actions are provided
+        """
+        if isinstance(actions, Action):
+            actions = [actions]
+        
+        x, y = state.agent_location
+        if state.has_item:
+            return self.item_to_goal[x, y] if not actions else self.item_to_goal[x, y, [action.value for action in actions]]
+        else:
+            return self.start_to_item[x, y] if not actions else self.start_to_item[x, y, [action.value for action in actions]]
+    
+    def update_qval(self, state: State, action: Action, new_qval: float) -> None:
+        """
+        Updates the Q value for a state-action pair, i.e. Q(S, A) = new_qval
+        """
+        x, y = state.agent_location
+        if state.has_item:
+            self.item_to_goal[x, y, action.value] = new_qval
+        else:
+            self.start_to_item[x, y, action.value] = new_qval
+    
+    def increase_qval(self, state: State, action: Action, increment: float) -> None:
+        """
+        Increases the Q value for a state-action pair, i.e. Q(S, A) += increment
+        """
+        x, y = state.agent_location
+        if state.has_item:
+            self.item_to_goal[x, y, action.value] += increment
+        else:
+            self.start_to_item[x, y, action.value] += increment
 
 
 def generate_grid_location_list(max_x: int, max_y) -> list[tuple[int, int]]:
     return [(i, j) for i in range(max_x) for j in range(max_y)]
 
 
-def save_trained_qval_matrix(trained_qval_matrix: np.ndarray, item: ItemObject) -> None:
+def save_trained_qval_matrix(trained_qval_matrix: QValueMatrix, item: ItemObject) -> None:
     if item.location is None:
         raise ValueError("Item location is None")
     with open(f'qval_matrix{item.location[0]}_{item.location[1]}.pickle', "wb") as f:
@@ -34,7 +82,7 @@ class Agent:
         self.grid_size = grid_size
         self.save_weights = save_weights
         
-        self.trained_qval_matrices: list[np.ndarray] = []
+        self.trained_qval_matrices: list[QValueMatrix] = []
     
     def train(self) -> None:
         """
@@ -49,10 +97,10 @@ class Agent:
             if self.save_weights:
                 save_trained_qval_matrix(qval_matrix, item)
 
-    def train_one_intermediate_item(self, item: ItemObject | None = None) -> np.ndarray:
+    def train_one_intermediate_item(self, item: ItemObject) -> QValueMatrix:
         env = Environment(n=5, item=item)
 
-        qval_matrix = np.zeros((env.n, env.n, 4))  # 4 for 4 actions
+        qval_matrix = QValueMatrix(self.grid_size[0], self.grid_size[1], len(Action))
 
         for episode in range(self.num_episode_per_intermediate_item):
             env.initialize_for_new_episode()
@@ -70,23 +118,20 @@ class Agent:
         
         return qval_matrix
     
-    def update(self, current_state: State, next_state: State, reward: float, action: int, qval_matrix: np.ndarray) -> None:
-        qval_difference = self.alpha * (
+    def update(self, current_state: State, next_state: State, reward: float, action: Action, qval_matrix: QValueMatrix) -> None:
+        qval_difference: float = self.alpha * (
             reward
-            + self.discount_rate * np.max(qval_matrix[*next_state.agent_location])
-            - qval_matrix[*current_state.agent_location, action]
+            + self.discount_rate * np.max(qval_matrix.get_state_qvals(next_state))
+            - qval_matrix.get_state_qvals(current_state, actions=action)
         )
-        qval_matrix[
-            *current_state.agent_location, action
-        ] += qval_difference
+        qval_matrix.increase_qval(current_state, action, qval_difference)
 
-    def choose_action(self, possible_actions: list[int], state: State, qval_matrix: np.ndarray, is_training: bool = True) -> int:
+    def choose_action(self, possible_actions: list[Action], state: State, qval_matrix: QValueMatrix, is_training: bool = True) -> Action:
         """
         Epislon greedy method to choose action
         """
-        agent_location_x, agent_location_y = state.agent_location
         if not is_training and random.random() < self.epsilon:
             return random.choice(possible_actions)
         else:
-            action_to_qval = list(zip(possible_actions, qval_matrix[agent_location_x, agent_location_y, possible_actions]))
+            action_to_qval = list(zip(possible_actions, qval_matrix.get_state_qvals(state, actions=possible_actions)))
             return max(action_to_qval, key=lambda x: x[1])[0]
