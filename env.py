@@ -71,11 +71,11 @@ class Environment:
 
         if current_state.agent_location == current_state.item_location:
             actions.append(Action.COLLECT)
-        
+
         # note: technically speaking we know that whenever agent is at the item location, the only available (or, the most optimal) action is to collect the item
-        # however, according to the CE, we must ensure that 
+        # however, according to the CE, we must ensure that
         # "the agent is supposed to learn (rather than being told) that
-        # once it has picked up the load it needs to move to the delivery point to complete its mission. ", 
+        # once it has picked up the load it needs to move to the delivery point to complete its mission. ",
         # implyging that agent must be able to learn to "collect" instead of being told to collect (so add all possible actions)
         if x > 0:
             actions.append(Action.LEFT)  # left
@@ -93,10 +93,14 @@ class Environment:
         We can actually use self.state but to make it more explicit, we pass the states as an argument
         """
         # TODO: technically, i think it should accept (prev state, action, next state)
-        
+
         # we ensure that Agent reveives item collection reward iff it has collected the item and is at the item location
         # or else, in the item collected space, agent receives high reward by going back to where the item was (which is already collected so wrong)
-        if prev_state.agent_location == current_state.item_location and current_state.agent_location == current_state.item_location and current_state.has_item:
+        if (
+            prev_state.agent_location == current_state.item_location
+            and current_state.agent_location == current_state.item_location
+            and current_state.has_item
+        ):
             return self.item_state_reward
         elif self.is_goal_state(current_state):
             return self.goal_state_reward
@@ -158,7 +162,11 @@ class Environment:
         # or else there is a single frame where the agent is at the same location twice,
         # so it looks like the agent is not moving
         handles = [
-            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", markersize=8, label="Agent (A)") if not self.agent.has_item else plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="purple", markersize=8, label="Agent (A) with item"),
+            plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="blue", markersize=8, label="Agent (A)")
+            if not self.agent.has_item
+            else plt.Line2D(
+                [0], [0], marker="o", color="w", markerfacecolor="purple", markersize=8, label="Agent (A) with item"
+            ),
             plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="green", markersize=8, label="Item (I)"),
             plt.Line2D([0], [0], marker="o", color="w", markerfacecolor="red", markersize=8, label="Goal (G)"),
         ]
