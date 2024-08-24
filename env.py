@@ -30,6 +30,7 @@ class Environment:
         self.time_penalty = time_penalty
         self.item_state_reward = item_state_reward
         self.goal_state_reward = goal_state_reward
+        self.num_steps = 0
 
         self.item = ItemObject() if item is None else item
         self.agent = AgentObject()
@@ -187,6 +188,7 @@ class Environment:
         next_state = self.get_state()
         self.animate()
         reward = self.get_reward(prev_state, next_state)
+        self.num_steps += 1
         return reward, next_state
 
 
