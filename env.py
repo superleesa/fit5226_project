@@ -48,8 +48,8 @@ class Environment:
         self.fig, self.ax = plt.subplots(figsize=(8, 8))
 
     def initialize_for_new_episode(self) -> None:
-        self.agent.set_location_randomly(self.n, self.n, [self.item.location])
-        self.state = State(self.agent.location, self.item.location)
+        self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()])
+        self.state = State(agent_location=self.agent.get_location(), item_location=self.item.get_location(), has_item=self.agent.has_item)
         self.animate()  # Initial drawing of the grid
 
     def get_state(self) -> State:
@@ -97,12 +97,11 @@ class Environment:
 
     def get_next_state(self, action: Action) -> State:
         self.agent.move(action)
-        self.state = State(self.agent.location, self.item.location)
+        self.state = State(agent_location=self.agent.get_location(), item_location=self.item.get_location(), has_item=self.agent.has_item)
         return self.state
 
     def is_goal_state(self, state: State) -> bool:
         return self.goal_location == state.agent_location
-        )  # we treat the item location as the goal location
 
     def animate(self):
         self.ax.clear()
