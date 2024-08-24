@@ -59,6 +59,7 @@ class Environment:
             item_location=self.item.get_location(),
             has_item=self.agent.has_item,
         )
+        self.num_steps = 0
         self.animate()  # Initial drawing of the grid
 
     def get_state(self) -> State:
