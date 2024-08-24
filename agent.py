@@ -112,15 +112,13 @@ class Agent:
         
         return qval_matrix
     
-    def update(self, current_state: State, next_state: State, reward: float, action: int, qval_matrix: np.ndarray) -> None:
-        qval_difference = self.alpha * (
+    def update(self, current_state: State, next_state: State, reward: float, action: Action, qval_matrix: QValueMatrix) -> None:
+        qval_difference: float = self.alpha * (
             reward
-            + self.discount_rate * np.max(qval_matrix[*next_state.agent_location])
-            - qval_matrix[*current_state.agent_location, action]
+            + self.discount_rate * np.max(qval_matrix.get_state_qvals(next_state))
+            - qval_matrix.get_state_qvals(current_state, actions=action)
         )
-        qval_matrix[
-            *current_state.agent_location, action
-        ] += qval_difference
+        qval_matrix.increase_qval(current_state, action, qval_difference)
 
     def choose_action(self, possible_actions: list[int], state: State, qval_matrix: np.ndarray, is_training: bool = True) -> int:
         """
