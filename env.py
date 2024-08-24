@@ -23,6 +23,7 @@ class Environment:
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
+        with_animation: bool = True,
     ) -> None:
         self.n = n
         self.goal_location = goal_location
@@ -46,7 +47,8 @@ class Environment:
         # self.grid[x_item, y_item] = self.item
 
         # Setup for animation
-        self.fig, self.ax = plt.subplots(figsize=(8, 8))
+        self.with_animation = with_animation
+        self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
 
     def initialize_for_new_episode(self) -> None:
         self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()])
@@ -123,6 +125,8 @@ class Environment:
         return self.state.has_item and self.goal_location == state.agent_location
 
     def animate(self):
+        if not self.with_animation:
+            return
         self.ax.clear()
         self.ax.set_xlim(0, self.n)
         self.ax.set_ylim(self.n, 0)
