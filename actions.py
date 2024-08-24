@@ -9,7 +9,4 @@ class Action(Enum):
     UP = 3
     
     # actions when agent just got the item and is moving to item_reached state
-    GOT_ITEM_LEFT = 4
-    GOT_ITEM_RIGHT = 5
-    GOT_ITEM_DOWN = 6
-    GOT_ITEM_UP = 7
+    COLLECT = 4  # goes to item reached state
