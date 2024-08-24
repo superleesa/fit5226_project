@@ -104,42 +104,39 @@ class Agent:
 
 
 class Trainer:
-    def __init__(self, agent: Agent, environment: Environment, with_animation=True) -> None:
+    def __init__(self, agent: Agent, environment: list[Environment]) -> None:
         self.agent = agent
-        self.environment = environment
-        self.with_animation = with_animation
+        self.environments = environment
 
-    def train(self, num_episodes: int) -> QValueMatrix:
+    def train(self, num_episodes: int, env: Environment) -> QValueMatrix:
         """
         Conducts training for a given number of episodes.
         """
         qval_matrix = QValueMatrix(self.agent.grid_size[0], self.agent.grid_size[1], len(Action))
 
         for episode in range(num_episodes):
-            self.environment.initialize_for_new_episode(with_animation=self.with_animation)
-            current_state = self.environment.get_state()
-            while not self.environment.is_goal_state(current_state):
-                possible_actions = self.environment.get_available_actions()
+            env.initialize_for_new_episode()
+            current_state = env.get_state()
+            while not env.is_goal_state(current_state):
+                possible_actions = env.get_available_actions()
                 action = self.agent.choose_action(possible_actions, current_state, qval_matrix)
-                reward, next_state = self.environment.step(action)
+                reward, next_state = env.step(action)
                 self.agent.update(current_state, next_state, reward, action, qval_matrix)
                 current_state = next_state
         
         return qval_matrix
 
-    def train_for_all_items(self) -> None:
+    def train_for_all_items(self,) -> None:
         """
         We are training for all "goal location" in the grid; so indivisual state consists of x, y, goal_x, goal_y, technically speaking.
         However, to ensure that the agent samples from all possible goal locations fairly, we will separately train for all possible goal locations.
         """
-        item_grid_locations = generate_grid_location_list(self.agent.grid_size[0], self.agent.grid_size[1])
-        all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
         
-        for item in all_items:
-            qval_matrix = self.train(self.agent.num_episode_per_intermediate_item)
+        for env in self.environments:
+            qval_matrix = self.train(self.agent.num_episode_per_intermediate_item, env)
             
             # Store the trained Q-value matrix in the agent
             self.agent.trained_qval_matrices.append(qval_matrix)
             
             if self.agent.save_weights:
-                save_trained_qval_matrix(qval_matrix, item)
+                save_trained_qval_matrix(qval_matrix, env.item)
