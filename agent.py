@@ -126,7 +126,7 @@ class Trainer:
         
         return qval_matrix
 
-    def train_for_all_items(self,) -> None:
+    def train_for_all_items(self) -> None:
         """
         We are training for all "goal location" in the grid; so indivisual state consists of x, y, goal_x, goal_y, technically speaking.
         However, to ensure that the agent samples from all possible goal locations fairly, we will separately train for all possible goal locations.

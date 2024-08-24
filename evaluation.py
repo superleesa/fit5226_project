@@ -1,20 +1,25 @@
+import random
+
+from tqdm import tqdm
+
+from agent import Agent, Trainer, ItemObject, generate_grid_location_list
 from env import Environment
-from agent import Agent, Trainer
+
 
 class Evaluation:
-    def __init__(self, n=5, with_animation=False) -> None:
+    def __init__(self, n=5) -> None:
         self.n = n
-        self.with_animation = with_animation
-
-    def run_train(self) -> tuple[Environment, Agent]:
+        self.agent = Agent()
+        item_grid_locations = generate_grid_location_list(self.n, self.n)
+        all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
+        self.envs = [Environment(item = item, with_animation=False) for item in all_items]
+    
+    def run_train(self) -> None:
         """
         Trains the agent in the environment and returns the trained agent.
         """
-        environment = Environment(n=self.n, with_animation=self.with_animation) 
-        agent = Agent()
-        trainer = Trainer(agent, environment, with_animation=self.with_animation)
+        trainer = Trainer(self.agent, self.envs)
         trainer.train_for_all_items()
-        return environment, agent
 
     @staticmethod
     def calculate_manhattan_distance(start_location: tuple[int, int], goal_location: tuple[int, int]) -> int:
@@ -30,50 +35,78 @@ class Evaluation:
         """
         Calculates the proportion of the Q-learning distance to the shortest distance.
         """
-        return distance / shortest_distance
+        return shortest_distance / distance
 
-    def performance_test(self, agent: Agent, env: Environment, num_of_tests: int = 10) -> float:
+    def visualize(self, num_of_vis: int = 5) -> None:
         """
-        Conducts a performance test for a given number of tests and returns the average score.
+        Visualize the path after trained
         """
-        total_score = 0.0
-
-        for _ in range(num_of_tests):
-            env.initialize_for_new_episode(with_animation=True)
-
-            start_location = env.agent.location  # Get the start location of the agent
-            item_location = env.item.location  # Get intermediate location of the item
-            goal_location = (self.n - 1, self.n - 1)  # Set the goal location
-
-            # Calculate shortest distance from start to item to goal
-            shortest_distance = (
-                self.calculate_manhattan_distance(start_location, item_location)
-                + self.calculate_manhattan_distance(item_location, goal_location)
-            )
+        envs_copy = self.envs.copy()
+        random.shuffle(envs_copy)
+        for env in envs_copy[:num_of_vis]:
+            env.set_with_animation(True)
+            env.initialize_for_new_episode()
 
             # Run the agent in the environment
             current_state = env.get_state()
             while not env.is_goal_state(current_state):
                 possible_actions = env.get_available_actions()
                 x, y = current_state.agent_location
-                action = agent.choose_action(possible_actions, current_state, agent.trained_qval_matrices[x+y], is_training=False)
+                action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[self.n*x+y], is_training=False)
                 _, next_state = env.step(action)
                 current_state = next_state
-            # print('shortest path: ', shortest_distance)
-            # print('path: ', env.num_steps)
+    
+    def performance_test(self):
+        """
+        Conducts a performance test ()
+        """
+        num_episodes = 0
+        total_score = 0
+        for env in tqdm(self.envs):
+            env.set_with_animation(False)
+            for locaiton in tqdm(generate_grid_location_list(self.n, self.n)):
+                if locaiton == env.item.location or locaiton == env.goal_location:
+                    continue
 
-            # Calculate and accumulate the score
-            total_score += self.calculate_metrics_score(shortest_distance, env.num_steps)
-        
+                env.initialize_for_new_episode(agent_location=locaiton)
+                start_location = env.agent.location  # Get the start location of the agent
+                item_location = env.item.location  # Get intermediate location of the item
+
+                # Calculate shortest distance from start to item to goal
+                shortest_distance = (
+                    self.calculate_manhattan_distance(start_location, item_location)
+                    + 1 
+                    + self.calculate_manhattan_distance(item_location, env.goal_location)
+                )
+
+                current_state = env.get_state()
+                num_steps = 0
+                while not env.is_goal_state(current_state):
+                    possible_actions = env.get_available_actions()
+                    x, y = current_state.agent_location
+                    action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[self.n*x+y], is_training=False)
+                    _, next_state = env.step(action)
+                    current_state = next_state
+                    num_steps += 1
+
+                # Calculate and accumulate the score
+                # total_score += self.calculate_metrics_score(shortest_distance, num_steps)
+                
+                print(self.calculate_metrics_score(shortest_distance, num_steps))
+                num_episodes += 1
+
         # Return the average score across all tests
-        return total_score / num_of_tests
-
+        return total_score / num_episodes
+    
 if __name__ == "__main__":
-    evl = Evaluation()
+    # print(generate_grid_location_list(3, 3))
 
-    # Train the agent first
-    trained_environment, trained_agent = evl.run_train()
+    evl = Evaluation()
+    evl.run_train()
 
     # Conduct the performance test
-    average_score = evl.performance_test(agent=trained_agent, env=trained_environment, num_of_tests=10)
-    print(f"Average performance score: {average_score:.4f}")
+    # average_score = evl.performance_test()
+    # print(f"Average performance score (1 is the best): {average_score:.4f}")
+
+    # visualize randomly the environments and show the steps of the agent
+    evl.visualize()

@@ -30,7 +30,6 @@ class Environment:
         self.time_penalty = time_penalty
         self.item_state_reward = item_state_reward
         self.goal_state_reward = goal_state_reward
-        self.num_steps = 0
 
         self.item = ItemObject() if item is None else item
         self.agent = AgentObject()
@@ -49,21 +48,26 @@ class Environment:
 
         # Setup for animation
         self.with_animation = with_animation
-        self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
 
-    def initialize_for_new_episode(self) -> None:
-        self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()])
+    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None) -> None:
+        if agent_location is None:
+            self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()]) 
+        else:
+            self.agent.location = agent_location
         self.agent.has_item = False
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
             has_item=self.agent.has_item,
         )
-        self.num_steps = 0
+        self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
         self.animate()  # Initial drawing of the grid
 
     def get_state(self) -> State:
         return self.state
+    
+    def set_with_animation(self, with_animation: bool) -> None:
+        self.with_animation = with_animation
 
     def get_available_actions(self) -> list[Action]:
         """
@@ -189,7 +193,6 @@ class Environment:
         next_state = self.get_state()
         self.animate()
         reward = self.get_reward(prev_state, next_state)
-        self.num_steps += 1
         return reward, next_state
 
 

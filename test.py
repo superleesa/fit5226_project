@@ -20,6 +20,14 @@ def test_train_viz():
         action = agent.choose_action(possible_actions, env.get_state(), agent.qval_matrix, is_training=True)
         env.step(action)  # Each step will now trigger an animation update
 
+
 if __name__ == "__main__":
-    pass
     # test_train_viz()
+    from agent import Agent, Trainer, ItemObject, generate_grid_location_list
+
+    agent = Agent()
+    item_grid_locations = generate_grid_location_list(5, 5)
+    all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
+    envs = [Environment(item = item, with_animation=True) for item in all_items]
+    trainer = Trainer(agent, envs)
+    trainer.train_for_all_items()
