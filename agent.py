@@ -84,9 +84,7 @@ def inference():
         possible_actions = env.get_available_actions()
         action = env.agent.choose_action(possible_actions, current_state, qval_matrix, is_training=False)
         _, next_state = env.step(action)
-        current_state = next_state
-        
-        env.animate()  # Update the environment's animation       
+        current_state = next_state       
 
     print("Goal Reached!")
 
