@@ -4,13 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fit5226_project"
-dependencies = []
-
-[tool.setuptools]
-package-dir = { "" = "src" }
-
-[tool.setuptools.packages.find]
-where = ["src"]
+version = "0.1.0"
 
 [tool.ruff]
 line-length = 119
