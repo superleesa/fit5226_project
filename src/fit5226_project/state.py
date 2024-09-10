@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(kw_only=True)
 class State:
     # it doesn not hold AgentObject / ItemObject because I want State to be immutable
     # but in the future, we might want to add more attributes to State
@@ -12,7 +12,7 @@ class State:
     has_item: bool = False
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Assignment2State(State):
     goal_location: tuple[int, int]
     
