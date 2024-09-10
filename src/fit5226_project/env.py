@@ -246,9 +246,12 @@ class Asignment2Environment:
         self.current_sub_environment.initialize_for_new_episode(agent_location)
         
         self.state = Assignment2State(
-            agent_location=self.agent.get_location(),
-            item_location=self.item.get_location(),
-            has_item=self.agent.has_item,
+            agent_location=self.current_sub_environment.agent.get_location(),
+            item_location=self.current_sub_environment.item.get_location(),
+            has_item=self.current_sub_environment.agent.has_item,
+            goal_location=self.current_sub_environment.goal_location,
+            goal_direction=self.get_goal_direction(),
+            item_direction=self.get_item_direction(),
         )
         # NOTE: animation should be handled by individual sub-environments
     
@@ -284,6 +287,43 @@ class Asignment2Environment:
         state_raward = self.current_sub_environment.get_reward(prev_state, current_state)
         action_reward = self.get_direction_reward(action)
         return state_raward + action_reward
+    
+    def get_state(self) -> Assignment2State:
+        return self.state
+    
+    def get_goal_direction(self) -> tuple[float, float]:
+        return (
+            self.current_sub_environment.goal_location[0] - self.current_sub_environment.agent.get_location()[0],
+            self.current_sub_environment.goal_location[1] - self.current_sub_environment.agent.get_location()[1],
+        )
+    
+    def get_item_direction(self) -> tuple[float, float]:
+        return (
+            self.current_sub_environment.item.get_location()[0] - self.current_sub_environment.agent.get_location()[0],
+            self.current_sub_environment.item.get_location()[1] - self.current_sub_environment.agent.get_location()[1],
+        )
+    
+    def update_state(self, action: Action) -> None:
+        """
+        Be careful: this method updates the state of the environment
+        """
+        self.current_sub_environment.agent.move(action)
+        self.state = Assignment2State(
+            agent_location=self.current_sub_environment.agent.get_location(),
+            item_location=self.current_sub_environment.item.get_location(),
+            has_item=self.current_sub_environment.agent.has_item,
+            goal_location=self.current_sub_environment.goal_location,
+            goal_direction=self.get_goal_direction(),
+            item_direction=self.get_item_direction(),
+        )
+    
+    def step(self, action: Action) -> tuple[float, Assignment2State]:
+        prev_state = self.get_state()
+        self.update_state(action)
+        next_state = self.get_state()
+        self.current_sub_environment.animate()
+        reward = self.get_reward(prev_state, next_state, action)
+        return reward, next_state
 
 
 class GridObject(ABC):
