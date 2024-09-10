@@ -303,6 +303,9 @@ class Assignment2Environment:
             self.current_sub_environment.item.get_location()[1] - self.current_sub_environment.agent.get_location()[1],
         )
     
+    def is_goal_state(self, state: State) -> bool:
+        return self.current_sub_environment.state.has_item and self.current_sub_environment.goal_location == state.agent_location
+    
     def update_state(self, action: Action) -> None:
         """
         Be careful: this method updates the state of the environment
