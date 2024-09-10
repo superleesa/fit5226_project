@@ -1,12 +1,14 @@
 from __future__ import annotations
 from abc import ABC
-from random import randint
+from random import randint, choice
+from typing import cast
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.spatial.distance import cosine
 
 from fit5226_project.actions import Action
-from fit5226_project.state import State
+from fit5226_project.state import State, Assignment2State
 
 
 DEFAULT_TIME_PENALTY = -1
@@ -194,6 +196,94 @@ class Environment:
         self.animate()
         reward = self.get_reward(prev_state, next_state)
         return reward, next_state
+
+
+class Asignment2Environment:
+    """
+    A wrapper class for multiple environments for Assignment 2
+    This environment consits of multiple "sub-environments" where each sub-environment has a different goal and item location
+    """
+    def __init__(
+        self, 
+        n: int = 5,
+        time_penalty: int | float = DEFAULT_TIME_PENALTY,
+        item_state_reward: int | float = DEFAULT_ITEM_REWARD,
+        goal_state_reward: int | float = GOAL_STATE_REWARD,
+        direction_reward_multiplier: int | float = 1,
+        with_animation: bool = True,
+    ) -> None:
+        self.n = n
+        # initialize a list of environments for all possible goal and item positions
+        self.environments = []
+        
+        for goal_x in range(self.n):
+            for goal_y in range(self.n):
+                for item_x in range(self.n):
+                    for item_y in range(self.n):
+                        if (goal_x, goal_y) == (item_x, item_y):
+                            continue
+                        environment = Environment(
+                            n=self.n,
+                            goal_location=(goal_x, goal_y),
+                            item=ItemObject(location=(item_x, item_y)),
+                            with_animation=with_animation,
+                            time_penalty=time_penalty,
+                            item_state_reward=item_state_reward,
+                            goal_state_reward=goal_state_reward,
+                        )
+                        self.environments.append(environment)
+        
+        self.direction_reward_multiplier = direction_reward_multiplier
+        
+        self.current_sub_environment: Environment
+        self.state: Assignment2State
+    
+    def get_random_sub_environment(self) -> Environment:
+        return choice(self.environments)
+    
+    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None) -> None:
+        self.current_sub_environment = self.get_random_sub_environment()
+        self.current_sub_environment.initialize_for_new_episode(agent_location)
+        
+        self.state = Assignment2State(
+            agent_location=self.agent.get_location(),
+            item_location=self.item.get_location(),
+            has_item=self.agent.has_item,
+        )
+        # NOTE: animation should be handled by individual sub-environments
+    
+    def get_available_actions(self) -> list[Action]:
+        return self.current_sub_environment.get_available_actions()
+
+    def set_with_animation(self, with_animation: bool) -> None:
+        for environment in self.environments:
+            environment.set_with_animation(with_animation)
+    
+    def get_direction_reward(self, action: Action) -> float:
+        """
+        Use cosine similarity to calculate the reward based on the direction of the action
+        """
+        has_collected_item = self.state.has_item
+        
+        # action direction
+        if action == Action.LEFT:
+            action_direction = (-1, 0)
+        elif action == Action.RIGHT:
+            action_direction = (1, 0)
+        elif action == Action.DOWN:
+            action_direction = (0, -1)
+        elif action == Action.UP:
+            action_direction = (0, 1)
+        
+        if has_collected_item:
+            return cosine(action_direction, self.state.goal_direction)*self.direction_reward_multiplier
+        else:
+            return cosine(action_direction, self.state.item_direction)*self.direction_reward_multiplier
+    
+    def get_reward(self, prev_state: Assignment2State, current_state: Assignment2State, action: Action) -> float:
+        state_raward = self.current_sub_environment.get_reward(prev_state, current_state)
+        action_reward = self.get_direction_reward(action)
+        return state_raward + action_reward
 
 
 class GridObject(ABC):

@@ -13,14 +13,10 @@ class State:
 
 
 @dataclass
-class Assignment2State:
-    agent_location: tuple[int, int]
-    item_location: tuple[int, int]
+class Assignment2State(State):
     goal_location: tuple[int, int]
     
     # https://edstem.org/au/courses/17085/discussion/2192014
     # these two attributes should be unit vectors
     goal_direction: tuple[float, float]
     item_direction: tuple[int, int]
-    
-    has_item: bool = False
