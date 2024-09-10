@@ -99,18 +99,16 @@ class Environment:
 
         return actions
 
-    def get_reward(self, current_state: State, prev_state: State | None = None):
+    def get_reward(self, prev_state: State, current_state: State):
         """
         We can actually use self.state but to make it more explicit, we pass the states as an argument
-        
-        perv_state can be None, if the action is the first action of the episode
         """
         # TODO: technically, i think it should accept (prev state, action, next state)
 
         # we ensure that Agent reveives item collection reward iff it has collected the item and is at the item location
         # or else, in the item collected space, agent receives high reward by going back to where the item was (which is already collected so wrong)
         if (
-            (prev_state is None or prev_state is not None and prev_state.agent_location == current_state.item_location)
+            prev_state.agent_location == current_state.item_location
             and current_state.agent_location == current_state.item_location
             and current_state.has_item
         ):
