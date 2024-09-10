@@ -17,6 +17,7 @@ class Assignment2State(State):
     goal_location: tuple[int, int]
     
     # https://edstem.org/au/courses/17085/discussion/2192014
-    # these two attributes should be unit vectors
+    # these two attributes should be vectors (does not need to be unit vectors as we use cos distance)
+    # but these should be in terms of coordinates, not indices so be careful
     goal_direction: tuple[float, float]
-    item_direction: tuple[int, int]
+    item_direction: tuple[float, float]
