@@ -198,7 +198,7 @@ class Environment:
         return reward, next_state
 
 
-class Asignment2Environment:
+class Assignment2Environment:
     """
     A wrapper class for multiple environments for Assignment 2
     This environment consits of multiple "sub-environments" where each sub-environment has a different goal and item location
