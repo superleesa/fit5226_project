@@ -155,3 +155,35 @@ class DQNAgent:
         if self.steps % self.update_target_steps == 0:
             self.update_target_network()
 
+    def save_state(self, filepath):
+        """Save the entire agent state, including model weights and hyperparameters."""
+        torch.save({
+            'model_state_dict': self.model.state_dict(),  # Model weights
+            'target_model_state_dict': self.target_model.state_dict(),  # Target model weights
+            'optimizer_state_dict': self.optimizer.state_dict(),  # Optimizer state
+            'epsilon': self.epsilon,  # Epsilon value
+            'epsilon_decay': self.epsilon_decay,  # Epsilon decay rate
+            'epsilon_min': self.epsilon_min,  # Minimum epsilon
+            'discount_rate': self.discount_rate,  # Discount factor
+            'replay_memory': self.replay_memory,  # Replay memory
+            'steps': self.steps,  # Steps to update target network
+            'random_state': random.getstate(),  # Python random state
+            'numpy_random_state': np.random.get_state(),  # Numpy random state
+        }, filepath)
+
+    def load_state(self, filepath):
+        """Load the entire agent state, including model weights and hyperparameters."""
+        checkpoint = torch.load(filepath)
+        self.model.load_state_dict(checkpoint['model_state_dict'])  # Load model weights
+        self.target_model.load_state_dict(checkpoint['target_model_state_dict'])  # Load target model weights
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])  # Restore optimizer state
+        self.epsilon = checkpoint['epsilon']  # Restore epsilon value
+        self.epsilon_decay = checkpoint['epsilon_decay']  # Restore epsilon decay rate
+        self.epsilon_min = checkpoint['epsilon_min']  # Restore minimum epsilon
+        self.discount_rate = checkpoint['discount_rate']  # Restore discount factor
+        self.replay_memory = checkpoint['replay_memory']  # Restore replay memory
+        self.steps = checkpoint['steps']  # Restore steps
+        random.setstate(checkpoint['random_state'])  # Restore Python random state
+        np.random.set_state(checkpoint['numpy_random_state'])  # Restore Numpy random state
+        # If using a learning rate scheduler:
+        # scheduler.load_state_dict(checkpoint['scheduler_state_dict'])  # Restore scheduler state

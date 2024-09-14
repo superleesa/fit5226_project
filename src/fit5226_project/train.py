@@ -3,6 +3,7 @@ from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State,State
 from fit5226_project.actions import Action
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Trainer:
     def __init__(self, agent: DQNAgent, environment: Assignment2Environment) -> None:
@@ -12,6 +13,8 @@ class Trainer:
         self.agent = agent
         self.environment = environment
         self.current_sub_environment = None  # Track the current environment
+        self.episode_rewards = []  # List to store total rewards for each episode
+
 
     def train_one_episode(self) -> None:
         """
@@ -24,6 +27,7 @@ class Trainer:
 
         current_state = self.current_sub_environment.get_state()  # Get state from current sub-environment
         done = False
+        total_reward = 0  # Track total reward for the episode
 
         while not done:
             # Convert the current state to a numpy array for input to the neural network
@@ -50,6 +54,9 @@ class Trainer:
             # Print the reward received after taking the action
             print(f"Reward: {reward}")
 
+            # Add the reward to the total reward for this episode
+            total_reward += reward
+
             # Convert the next state to a numpy array
             next_state_array = self.state_to_array(next_state)
 
@@ -64,6 +71,9 @@ class Trainer:
 
             # Move to the next state
             current_state = next_state
+
+        # Store total reward of the episode
+        self.episode_rewards.append(total_reward)
 
     def state_to_array(self, state: State) -> np.ndarray:
         """
@@ -87,6 +97,11 @@ class Trainer:
                 *state.item_location,   # Item's (x, y) location
                 float(state.has_item)   # 1 if agent has item, 0 otherwise
             ])
+
+        # Ensure the state array matches the input size of the neural network
+        if len(state_array) != 11:
+            print(f"Warning: State array length mismatch. Expected 11, got {len(state_array)}. Padding with zeros.")
+            state_array = np.pad(state_array, (0, 11 - len(state_array)), 'constant')
         return state_array
 
 
@@ -98,6 +113,22 @@ class Trainer:
             print(f"Starting Episode {episode + 1}")
             self.train_one_episode()
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
+
+        # Plot the rewards after training is complete
+        self.plot_rewards()
+
+    def plot_rewards(self) -> None:
+        """
+        Plot the total reward earned per episode.
+        """
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.episode_rewards, label='Total Reward per Episode')
+        plt.xlabel('Episode')
+        plt.ylabel('Total Reward')
+        plt.title('Reward Earned per Episode')
+        plt.legend()
+        plt.show()
+
 
     def evaluate(self, num_episodes: int) -> None:
         """
