@@ -27,7 +27,7 @@ agent = DQNAgent(
     epsilon=1.0,
     epsilon_decay=0.997,
     epsilon_min=0.1,
-    replay_memory_size=1000,
+    replay_memory_size=30,
     batch_size=200,
     update_target_steps=500
 )

@@ -66,16 +66,18 @@ class DQNAgent:
         """
         self.target_model.load_state_dict(self.model.state_dict())
 
-    def select_action(self, state: np.ndarray) -> Action:
+    def select_action(self, state: np.ndarray, available_actions: List[Action]) -> Action:
         """
         Select an action using an ε-greedy policy.
         """
         if random.random() < self.epsilon:
-            return random.choice(list(Action))
+            return random.choice(available_actions)
         else:
             qvals = self.get_qvals(state)
-            return Action(np.argmax(qvals))
-
+            # Filter Q-values to only consider available actions
+            valid_qvals = [qvals[action.value] for action in available_actions]
+            return available_actions[np.argmax(valid_qvals)]
+        
     def get_qvals(self, state: np.ndarray) -> np.ndarray:
         """
         Get Q-values for a given state from the prediction network.
