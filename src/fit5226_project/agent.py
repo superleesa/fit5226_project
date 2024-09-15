@@ -12,14 +12,14 @@ class DQNAgent:
         self,
         statespace_size: int = 11,
         action_space_size: int = len(Action),
-        alpha: float = 0.997,
+        alpha: float = 0.0001,
         discount_rate: float = 0.95,
-        epsilon: float = 1.0,
-        epsilon_decay: float = 0.997,
+        epsilon: float = 1,
+        epsilon_decay: float = 0.97,
         epsilon_min: float = 0.1,
         replay_memory_size: int = 1000,
-        batch_size: int = 200,
-        update_target_steps: int = 500,
+        batch_size: int = 30,
+        update_target_steps: int = 25,
     ) -> None:
         """
         Initialize the DQN Agent
@@ -146,9 +146,6 @@ class DQNAgent:
 
         # Train the model
         loss = self.train_one_step(states, actions, targets)
-
-        # Update epsilon to decrease exploration over time
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
 
         # Update target network periodically
         self.steps += 1

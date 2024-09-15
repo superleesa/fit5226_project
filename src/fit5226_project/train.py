@@ -30,7 +30,7 @@ class Trainer:
         total_reward = 0  # Track total reward for the episode
         step_count = 0  # Initialize step counter
 
-        while not done and step_count < 40:  # Truncate episode after 40 steps
+        while not done:  # Truncate episode after 40 steps
             # Convert the current state to a numpy array for input to the neural network
             state_array = self.state_to_array(current_state)
 
@@ -38,23 +38,23 @@ class Trainer:
             available_actions = self.environment.get_available_actions(current_state)
 
             # Print debug information: agent location, item location, available actions, and has item
-            print(f"Agent Location: {current_state.agent_location}")
-            print(f"Item Location: {current_state.item_location}")
-            print(f"Goal Location: {current_state.goal_location}")
-            print(f"Available Actions: {available_actions}")
-            print(f"Has Item: {current_state.has_item}")
+            # print(f"Agent Location: {current_state.agent_location}")
+            # print(f"Item Location: {current_state.item_location}")
+            # print(f"Goal Location: {current_state.goal_location}")
+            # print(f"Available Actions: {available_actions}")
+            # print(f"Has Item: {current_state.has_item}")
 
             # Select an action using the agent's ε-greedy policy
             action = self.agent.select_action(state_array, available_actions)
 
             # Print the selected action
-            print(f"Selected Action: {action}")
+            # print(f"Selected Action: {action}")
 
             # Execute the action in the current sub-environment, receive reward and next state
             reward, next_state = self.environment.step(action)
 
             # Print the reward received after taking the action
-            print(f"Reward: {reward}")
+            # print(f"Reward: {reward}")
 
             # Add the reward to the total reward for this episode
             total_reward += reward
@@ -76,6 +76,9 @@ class Trainer:
 
             # Increment the step counter
             step_count += 1
+
+        # Update epsilon to decrease exploration over time
+        self.agent.epsilon = max(self.agent.epsilon_min, self.agent.epsilon * self.agent.epsilon_decay)
 
         # Store total reward of the episode
         self.episode_rewards.append(total_reward)
