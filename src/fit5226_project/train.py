@@ -25,20 +25,22 @@ class Trainer:
         # Store the current environment reference to use throughout the episode
         self.current_sub_environment = self.environment.current_sub_environment
 
-        current_state = self.current_sub_environment.get_state()  # Get state from current sub-environment
+        current_state = self.environment.get_state()  # Get state from current sub-environment
         done = False
         total_reward = 0  # Track total reward for the episode
+        step_count = 0  # Initialize step counter
 
-        while not done:
+        while not done and step_count < 40:  # Truncate episode after 40 steps
             # Convert the current state to a numpy array for input to the neural network
             state_array = self.state_to_array(current_state)
 
             # Retrieve available actions from the current sub-environment
-            available_actions = self.current_sub_environment.get_available_actions(current_state)
+            available_actions = self.environment.get_available_actions(current_state)
 
             # Print debug information: agent location, item location, available actions, and has item
             print(f"Agent Location: {current_state.agent_location}")
             print(f"Item Location: {current_state.item_location}")
+            print(f"Goal Location: {current_state.goal_location}")
             print(f"Available Actions: {available_actions}")
             print(f"Has Item: {current_state.has_item}")
 
@@ -49,7 +51,7 @@ class Trainer:
             print(f"Selected Action: {action}")
 
             # Execute the action in the current sub-environment, receive reward and next state
-            reward, next_state = self.current_sub_environment.step(action)
+            reward, next_state = self.environment.step(action)
 
             # Print the reward received after taking the action
             print(f"Reward: {reward}")
@@ -61,7 +63,7 @@ class Trainer:
             next_state_array = self.state_to_array(next_state)
 
             # Check if the next state is a goal state
-            done = self.current_sub_environment.is_goal_state(next_state)
+            done = self.environment.is_goal_state(next_state)
 
             # Store experience in the agent's replay memory
             self.agent.remember((state_array, action.value, reward, next_state_array, done))
@@ -71,6 +73,9 @@ class Trainer:
 
             # Move to the next state
             current_state = next_state
+
+            # Increment the step counter
+            step_count += 1
 
         # Store total reward of the episode
         self.episode_rewards.append(total_reward)
@@ -114,10 +119,12 @@ class Trainer:
             self.train_one_episode()
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
 
-        # Plot the rewards after training is complete
-        self.plot_rewards()
+        # Plot and save the rewards and epsilon decay after training is complete
+        self.plot_rewards(save=True, filename='reward_plot.png')
+        self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
 
-    def plot_rewards(self) -> None:
+
+    def plot_rewards(self, save: bool = False, filename: str = None) -> None:
         """
         Plot the total reward earned per episode.
         """
@@ -127,7 +134,29 @@ class Trainer:
         plt.ylabel('Total Reward')
         plt.title('Reward Earned per Episode')
         plt.legend()
-        plt.show()
+        if save and filename:
+            plt.savefig(filename)
+            print(f"Reward plot saved to {filename}")
+        else:
+            plt.show()
+
+    def plot_epsilon_decay(self, num_episodes: int, save: bool = False, filename: str = None) -> None:
+        """
+        Plot the epsilon decay over episodes.
+        """
+        epsilons = [max(self.agent.epsilon_min, self.agent.epsilon * (self.agent.epsilon_decay ** i)) for i in range(num_episodes)]
+        
+        plt.figure(figsize=(10, 5))
+        plt.plot(range(num_episodes), epsilons, label='Epsilon Decay')
+        plt.xlabel('Episodes')
+        plt.ylabel('Epsilon')
+        plt.title('Epsilon Decay over Episodes')
+        plt.legend()
+        if save and filename:
+            plt.savefig(filename)
+            print(f"Epsilon decay plot saved to {filename}")
+        else:
+            plt.show()
 
 
     def evaluate(self, num_episodes: int) -> None:
