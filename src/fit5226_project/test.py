@@ -1,33 +1,53 @@
+# Import necessary libraries and classes
 import numpy as np
-from fit5226_project.env import Environment
+import torch
+import random
+from fit5226_project.actions import Action
+from fit5226_project.env import Assignment2Environment
+from fit5226_project.state import Assignment2State
+from fit5226_project.agent import DQNAgent
+from fit5226_project.train import Trainer
 
-# Import Agent inside the function where it's used
-def test_train_viz():
-    # Import Agent here to avoid circular import at the top level
-    from fit5226_project.agent import Agent
+# Initialize the environment
+env = Assignment2Environment(
+    n=4,  # Grid size
+    time_penalty=-2,
+    item_state_reward=200,
+    goal_state_reward=300,
+    direction_reward_multiplier=1,
+    with_animation=False  # Enable animation for visualization
+)
 
-    # Create the environment
-    env = Environment(n=5)
+# Initialize the agent with updated parameters
+agent = DQNAgent(
+    statespace_size=11,  # Size of the state space (based on Assignment2State attributes)
+    action_space_size=len(Action),  # Number of possible actions
+    alpha=0.997,
+    discount_rate=0.95,
+    epsilon=1.0,
+    epsilon_decay=0.997,
+    epsilon_min=0.1,
+    replay_memory_size=1000,  # Updated memory size
+    batch_size=200,  # Updated batch size
+    update_target_steps=500
+)
 
-    # Initialize the agent
-    agent = Agent()
-    agent.qval_matrix = np.zeros((5, 5, 4))  # Dummy matrix for the example
+#Load the pre-trained state (weights and hyperparameters)
+agent.load_state("dqn_agent_state_truncated.pth")  # Replace with the path to your saved state file
 
-    # Example of using the step function with animation
-    env.initialize_for_new_episode()
-    for _ in range(10):  # Assuming a maximum of 10 steps for demonstration
-        possible_actions = env.get_available_actions()
-        action = agent.choose_action(possible_actions, env.get_state(), agent.qval_matrix, is_training=True)
-        env.step(action)  # Each step will now trigger an animation update
+# Initialize the trainer with the agent and environment
+trainer = Trainer(agent, env)
 
+# Save the trained model weights before training (optional)
+# agent.save_model("dqn_agent_weights_before_training.pth")
 
-if __name__ == "__main__":
-    # test_train_viz()
-    from fit5226_project.agent import Agent, Trainer, ItemObject, generate_grid_location_list
+# Train for 1000 episodes
+trainer.train(num_episodes=1000)  # Updated number of episodes
 
-    agent = Agent()
-    item_grid_locations = generate_grid_location_list(5, 5)
-    all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
-    envs = [Environment(item = item, with_animation=True) for item in all_items]
-    trainer = Trainer(agent, envs)
-    trainer.train()
+# Save the new state (weights and hyperparameters) after further training
+# agent.save_state("dqn_agent_full_state.pth")
+# agent.save_state("dqn_agent_state_final.pth")
+agent.save_state("dqn_agent_state_truncated.pth")
+
+# Evaluate the trained model
+# trainer.evaluate(num_episodes=5)
