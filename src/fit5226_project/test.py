@@ -11,11 +11,11 @@ from fit5226_project.train import Trainer
 # Initialize the environment
 env = Assignment2Environment(
     n=4,  # Grid size
-    time_penalty=-1,
+    time_penalty=-2,
     item_state_reward=200,
     goal_state_reward=300,
     direction_reward_multiplier=1,
-    with_animation=True  # Enable animation for visualization
+    with_animation=False  # Enable animation for visualization
 )
 
 # Initialize the agent with updated parameters
@@ -28,12 +28,12 @@ agent = DQNAgent(
     epsilon_decay=0.997,
     epsilon_min=0.1,
     replay_memory_size=1000,  # Updated memory size
-    batch_size=32,  # Updated batch size
-    update_target_steps=200
+    batch_size=200,  # Updated batch size
+    update_target_steps=500
 )
 
 #Load the pre-trained state (weights and hyperparameters)
-agent.load_state("dqn_agent_full_state_further_trained.pth")  # Replace with the path to your saved state file
+agent.load_state("dqn_agent_state_truncated.pth")  # Replace with the path to your saved state file
 
 # Initialize the trainer with the agent and environment
 trainer = Trainer(agent, env)
@@ -42,10 +42,12 @@ trainer = Trainer(agent, env)
 # agent.save_model("dqn_agent_weights_before_training.pth")
 
 # Train for 1000 episodes
-trainer.train(num_episodes=10)  # Updated number of episodes
+trainer.train(num_episodes=1000)  # Updated number of episodes
 
 # Save the new state (weights and hyperparameters) after further training
-agent.save_state("dqn_agent_full_state_further_trained.pth")
+# agent.save_state("dqn_agent_full_state.pth")
+# agent.save_state("dqn_agent_state_final.pth")
+agent.save_state("dqn_agent_state_truncated.pth")
 
 # Evaluate the trained model
 # trainer.evaluate(num_episodes=5)
