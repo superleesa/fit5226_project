@@ -411,7 +411,7 @@ class Assignment2Environment:
         """
         Be careful: this method updates the state of the environment
         """
-        self.current_sub_environment.agent.move(action,self.n)
+        self.current_sub_environment.update_state(action)
         self.state = Assignment2State(
             agent_location=self.current_sub_environment.agent.get_location(),
             item_location=self.current_sub_environment.item.get_location(),
