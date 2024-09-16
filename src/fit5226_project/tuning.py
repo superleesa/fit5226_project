@@ -110,7 +110,7 @@ class Tuning:
         Run hyperparameter tunig and save the best parameters
         '''
         # Define the number of trials
-        num_trials = 10
+        num_trials = 50
 
         # Optimize the objective function
         self.study.optimize(self.objective, n_trials=num_trials, show_progress_bar=True)
