@@ -9,7 +9,7 @@ from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.train import Trainer
 
-TIME_LIMIT = 10
+TIME_LIMIT = 60
 
 
 class Tuning:
@@ -21,14 +21,14 @@ class Tuning:
         # Hyperparameters to optimize
         alpha = trial.suggest_uniform('alpha', 0.995, 0.999)
         discount_rate = trial.suggest_uniform('discount_rate', 0.95, 0.975)
-        epsilon = trial.suggest_uniform('epsilon', 0.2, 0.6)
+        epsilon = trial.suggest_categorical('epsilon', [0.2, 0.35, 0.45, 0.6])
         replay_memory_size = trial.suggest_int('replay_memory_size', 1000, 5000)
         batch_size = trial.suggest_categorical('batch_size', [16, 32, 64, 128, 256])
         update_target_steps = trial.suggest_int('update_target_steps', 500, 1000)
         time_penalty = trial.suggest_int('time_penalty', -10, -1)
         non_goal_penalty = trial.suggest_int('non_goal_penalty', -500, -100)
         non_item_penalty = trial.suggest_int('non_item_penalty', -200, -50)
-        item_state_reward = trial.suggest_int('item_state_reward', 100, 400)
+        item_state_reward = trial.suggest_int('item_state_reward', 100, 200)
         goal_state_reward = trial.suggest_int('goal_state_reward', 300, 600)
         
         # Initialize Assignment2Environment
@@ -58,8 +58,6 @@ class Tuning:
 
         for _ in range(num_episodes):
             tune_env.initialize_for_new_episode() # Initialize the environment for a new episode
-            tune_env.current_sub_environment = tune_env.current_sub_environment
-
             current_state = tune_env.get_state()  # Get state from current sub-environment
             total_reward = 0  # Track total reward for the episode
             start_time = time.time()  # Record the start time of the episode
