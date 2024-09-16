@@ -18,6 +18,7 @@ env = Assignment2Environment(
     with_animation=False  # Enable animation for visualization
 )
 
+
 # Initialize the agent with updated parameters
 agent = DQNAgent(
     statespace_size=11,  # Size of the state space (based on Assignment2State attributes)
@@ -42,7 +43,7 @@ trainer = Trainer(agent, env)
 # agent.save_model("dqn_agent_weights_before_training.pth")
 
 # Train for 1000 episodes
-trainer.train(num_episodes=1000)  # Updated number of episodes
+trainer.train(num_episodes=20)  # Updated number of episodes
 
 # Save the new state (weights and hyperparameters) after further training
 # agent.save_state("dqn_agent_full_state.pth")
