@@ -30,8 +30,11 @@ class Trainer:
         while not done:
             state_array = self.state_to_array(current_state)
             available_actions = self.environment.get_available_actions(current_state)
-            action = self.agent.select_action(state_array, available_actions)
-            reward, next_state = self.environment.step(action)
+            action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions)
+            reward, next_state = self.environment.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
+            # print(f"S_t={current_state}, A={action.name}, R={reward}, S_t+1={next_state}")
+            print(f"R={reward}")
+            print("========================")
             next_state_array = self.state_to_array(next_state)
             done = self.environment.is_goal_state(next_state)
             total_reward += reward

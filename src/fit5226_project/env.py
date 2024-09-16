@@ -87,13 +87,13 @@ class Environment:
     def set_with_animation(self, with_animation: bool) -> None:
         self.with_animation = with_animation
 
-    def get_available_actions(self, state: State) -> list[Action]:
+    def get_available_actions(self, state: State | None = None) -> list[Action]:
         """
         Assumes that the current state is not the goal state
         """
         # logic to determine available actions
         actions = []
-        current_state = self.get_state()
+        current_state = state if state is not None else self.state
         x, y = current_state.agent_location
 
         if current_state.agent_location == current_state.item_location and not current_state.has_item:
@@ -200,7 +200,11 @@ class Environment:
     def is_goal_state(self, state: State) -> bool:
         return self.state.has_item and self.goal_location == state.agent_location
 
-    def animate(self):
+    def animate(self, state: Assignment2State | None = None, prev_state: Assignment2State | None = None, is_greedy: bool | None = None, all_qvals: np.ndarray | None = None, chosen_action: Action | None = None) -> None:
+        """
+        Animates the action
+        (basically just prints out the new state, but because it seems like the agent is "moving" because it's updated in the same figure)
+        """
         if not self.with_animation:
             return
         self.ax.clear()
@@ -238,6 +242,96 @@ class Environment:
             fontsize=16,
             color="red",
         )
+        
+        # FIXME: this doesn't work for State (only works for Assignment2State)
+        state_str = str(self.state) if state is None else str(state)
+        state_text = "".join(state_str.split(',')[:5]) + '\n' + "".join(state_str.split(',')[5:])
+        
+        # show state info
+        self.ax.text(
+            2,
+            2,
+            state_text,
+            ha="center",
+            va="center",
+            fontsize=10,
+            color="orange",
+        )
+        
+        # prints: if the action selected was greedy or random
+        if is_greedy is not None:
+            self.ax.text(
+            self.n,
+            self.n,
+            "Action is greedy" if is_greedy else "Action is random",
+            ha="center",
+            va="center",
+            fontsize=10,
+            color="black",
+        )
+        
+        # prints the q values for all possible actions in the previous state
+        # note: this is only printed if the action was greedy (because if random, the q values did not matter for action selection)
+        # note2: only "possible" actions are printed i.e. (if agent is not at the item position, it does not print the collect q value)
+        if all_qvals is not None and prev_state is not None and is_greedy:
+            left_q, right_q, down_q, up_q, collect_q = all_qvals
+            possible_actions = self.get_available_actions(prev_state)
+            # show left q value
+            prev_agent_location_on_plot_x = prev_state.agent_location[0] + 0.5
+            prev_agent_location_on_plot_y = prev_state.agent_location[1] + 0.5
+            box_center_to_val_location = 0.3
+            if Action.LEFT in possible_actions:
+                self.ax.text(
+                    prev_agent_location_on_plot_x - box_center_to_val_location,
+                    prev_agent_location_on_plot_y,
+                    f'{left_q:.2f}',
+                    ha="center",
+                    va="center",
+                    fontsize=13,
+                    color="red" if chosen_action == Action.LEFT else "black",
+                )
+            if Action.RIGHT in possible_actions:    
+                self.ax.text(
+                    prev_agent_location_on_plot_x + box_center_to_val_location,
+                    prev_agent_location_on_plot_y,
+                    f'{right_q:.2f}',
+                    ha="center",
+                    va="center",
+                    fontsize=13,
+                    color="red" if chosen_action == Action.RIGHT else "black",
+                )
+            if Action.DOWN in possible_actions:
+                self.ax.text(
+                    prev_agent_location_on_plot_x,
+                    prev_agent_location_on_plot_y - box_center_to_val_location,
+                    f'{down_q:.2f}',
+                    ha="center",
+                    va="center",
+                    fontsize=13,
+                    color="red" if chosen_action == Action.DOWN else "black",
+                )
+            if Action.UP in possible_actions:
+                self.ax.text(
+                    prev_agent_location_on_plot_x,
+                    prev_agent_location_on_plot_y + box_center_to_val_location,
+                    f'{up_q:.2f}',
+                    ha="center",
+                    va="center",
+                    fontsize=13,
+                    color="red" if chosen_action == Action.UP else "black",
+                )
+            if Action.COLLECT in possible_actions:
+                self.ax.text(
+                    prev_agent_location_on_plot_x,
+                    prev_agent_location_on_plot_y,
+                    f'{collect_q:.2f}',
+                    ha="center",
+                    va="center",
+                    fontsize=13,
+                    color="red" if chosen_action == Action.COLLECT else "black",
+                )
+            
+                
 
         # TODO: add a message saying "item collected" if the agent has collected the item
         # or else there is a single frame where the agent is at the same location twice,
@@ -255,7 +349,7 @@ class Environment:
 
         plt.subplots_adjust(right=0.75, left=0.1)
         self.fig.canvas.draw_idle()
-        plt.pause(0.5)  # Pause to allow visualization of the movement
+        plt.pause(0.7)  # Pause to allow visualization of the movement
 
     def step(self, action: Action) -> tuple[float, State]:
         prev_state = self.get_state()
@@ -412,11 +506,11 @@ class Assignment2Environment:
             item_direction=self.get_item_direction(),
         )
     
-    def step(self, action: Action) -> tuple[float, Assignment2State]:
+    def step(self, action: Action, is_greedy: bool, all_qvals: np.ndarray) -> tuple[float, Assignment2State]:
         prev_state = self.get_state()
         self.update_state(action)
         next_state = self.get_state()
-        self.current_sub_environment.animate()
+        self.current_sub_environment.animate(self.get_state(), prev_state, is_greedy, all_qvals, action)
         reward = self.get_reward(prev_state, next_state, action)
         return reward, next_state
 
