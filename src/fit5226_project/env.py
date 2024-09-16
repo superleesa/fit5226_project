@@ -69,6 +69,10 @@ class Environment:
             item_location=self.item.get_location(),
             has_item=self.agent.has_item,
         )
+        
+        # ensure that no multiple matplotlib windows open
+        if hasattr(self, "fig"):
+            plt.close(self.fig)  # type: ignore
         self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
         self.animate()  # Initial drawing of the grid
 
