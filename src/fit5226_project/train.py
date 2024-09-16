@@ -1,6 +1,9 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
-from fit5226_project.state import Assignment2State,State
+from fit5226_project.state import Assignment2State
 from fit5226_project.actions import Action
 import numpy as np
 import matplotlib.pyplot as plt
