@@ -12,20 +12,6 @@ from fit5226_project.train import Trainer
 TIME_LIMIT = 10
 
 
-class TQDMCallback:
-    '''
-    Define a callback function to update tqdm
-    '''
-    def __init__(self):
-        self.pbar = tqdm(desc="Optimizing Trials")
-
-    def __call__(self, study, trial):
-        self.pbar.update()
-
-    def close(self):
-        self.pbar.close()
-
-
 class Tuning:
     def __init__(self, time_limit: int = TIME_LIMIT) -> None:
         self.study = optuna.create_study(direction='maximize') # Create an Optuna study
