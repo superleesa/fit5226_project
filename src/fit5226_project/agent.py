@@ -66,11 +66,11 @@ class DQNAgent:
         """
         self.target_model.load_state_dict(self.model.state_dict())
 
-    def select_action(self, state: np.ndarray, available_actions: List[Action]) -> Action:
+    def select_action(self, state: np.ndarray, available_actions: List[Action], is_test: bool = False) -> Action:
         """
         Select an action using an ε-greedy policy.
         """
-        if random.random() < self.epsilon:
+        if is_test == False and random.random() < self.epsilon:
             return random.choice(available_actions)
         else:
             qvals = self.get_qvals(state)
