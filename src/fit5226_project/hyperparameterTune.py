@@ -1,6 +1,10 @@
 import optuna
 import random
 import numpy as np
+from fit5226_project.agent import DQNAgent
+from fit5226_project.env import Assignment2Environment
+from fit5226_project.actions import Action
+from fit5226_project.trainer import Trainer
 
 
 def DQN_Hyperparameter_Tune(trial: optuna.Trial) -> float:
@@ -39,56 +43,66 @@ def DQN_Hyperparameter_Tune(trial: optuna.Trial) -> float:
     num_episodes = 200
     tune_trainer = Trainer(tune_agent, tune_env)
 
-    current_state = tune_env.environment.get_state()  # Get state from current sub-environment
+    # Initialize the environment for a new episode
+    tune_env.initialize_for_new_episode()
+    # Store the current environment reference to use throughout the episode
+    tune_env.current_sub_environment = tune_env.current_sub_environment
+
+    current_state = tune_env.get_state()  # Get state from current sub-environment
     done = False
     total_reward = 0  # Track total reward for the episode
     step_count = 0  # Initialize step counter
+        
+    for episode in range(num_episodes):
+        print(f"Starting Episode {episode + 1}")
 
-    while not done:  # Truncate episode after 40 steps
-        # Convert the current state to a numpy array for input to the neural network
-        state_array = tune_trainer.state_to_array(current_state)
 
-        # Retrieve available actions from the current sub-environment
-        available_actions = tune_trainer.environment.get_available_actions(current_state)
+        while not done: # Truncate episode after 40 steps
+              # Convert the current state to a numpy array for input to the neural network
+              state_array = tune_trainer.state_to_array(current_state)
 
-        # Select an action using the agent's ε-greedy policy
-        action = tune_trainer.agent.select_action(state_array, available_actions)
+              # Retrieve available actions from the current sub-environment
+              available_actions = tune_env.get_available_actions(current_state)
 
-        # Execute the action in the current sub-environment, receive reward and next state
-        reward, next_state = tune_trainer.environment.step(action)
+              # Select an action using the agent's ε-greedy policy
+              action = tune_agent.select_action(state_array, available_actions)
 
-        # Add the reward to the total reward for this episode
-        total_reward += reward
+              # Print the selected action
+              print(f"Selected Action: {action}")
 
-        # Convert the next state to a numpy array
-        next_state_array = tune_trainer.state_to_array(next_state)
+              # Execute the action in the current sub-environment, receive reward and next state
+              reward, next_state = tune_env.step(action)
 
-        # Check if the next state is a goal state
-        done = tune_trainer.environment.is_goal_state(next_state)
+              # Print the reward received after taking the action
+              print(f"Reward: {reward}")
 
-        # Store experience in the agent's replay memory
-        tune_trainer.agent.remember((state_array, action.value, reward, next_state_array, done))
+              # Add the reward to the total reward for this episode
+              total_reward += reward
 
-        # Learn from experiences using experience replay
-        tune_trainer.agent.replay()
+              # Convert the next state to a numpy array
+              next_state_array = tune_trainer.state_to_array(next_state)
 
-        # Move to the next state
-        current_state = next_state
+              # Check if the next state is a goal state
+              done = tune_env.is_goal_state(next_state)
 
-        # Increment the step counter
-        step_count += 1
+              # Store experience in the agent's replay memory
+              tune_agent.remember((state_array, action.value, reward, next_state_array, done))
 
-        # Update epsilon to decrease exploration over time
-        agent.epsilon = max(agent.epsilon_min, agent.epsilon * agent.epsilon_decay)
+              # Learn from experiences using experience replay
+              tune_agent.replay()
+
+              # Move to the next state
+              current_state = next_state
 
         # Store total reward of the episode
         tune_trainer.episode_rewards.append(total_reward)
-    
+        
         if trial.should_prune():
-          raise optuna.exceptions.TrialPruned()
-    
-    return total_reward
+            raise optuna.exceptions.TrialPruned()
 
+        print(f"Episode {episode + 1} completed. Epsilon: {tune_agent.epsilon:.4f}")
+
+        return total_reward
 
 def main():
     # Create an Optuna study
