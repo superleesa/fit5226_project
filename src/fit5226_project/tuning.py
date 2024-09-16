@@ -5,11 +5,14 @@ import numpy as np
 
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
-from fit5226_project.actions import Action
 from fit5226_project.train import Trainer
 
 
-def DQN_Hyperparameter_Tune(trial: optuna.Trial) -> float:
+class Tuning:
+    def __init__(self) -> None:
+        self.study = optuna.create_study(direction='maximize')
+
+    def objective(trial: optuna.Trial) -> float:
         # Hyperparameters to optimize
         alpha = trial.suggest_uniform('alpha', 0.995, 0.999)
         discount_rate = trial.suggest_uniform('discount_rate', 0.95, 0.975)
@@ -18,25 +21,28 @@ def DQN_Hyperparameter_Tune(trial: optuna.Trial) -> float:
         batch_size = trial.suggest_categorical('batch_size', [16, 32, 64, 128, 256])
         update_target_steps = trial.suggest_int('update_target_steps', 500, 1000)
         time_penalty = trial.suggest_int('time_penalty', -10, -1)
+        non_goal_penalty = trial.suggest_int('non_goal_penalty', -500, -100)
+        non_item_penalty = trial.suggest_int('non_item_penalty', -200, -50)
         item_state_reward = trial.suggest_int('item_state_reward', 100, 400)
         goal_state_reward = trial.suggest_int('goal_state_reward', 300, 600)
-
+        
+        # Initialize Assignment2Environment
         tune_env = Assignment2Environment(
         n=4,  # Grid size
         time_penalty=time_penalty,
+        non_goal_penalty=non_goal_penalty,
+        non_item_penalty=non_item_penalty,
         item_state_reward=item_state_reward,
         goal_state_reward=goal_state_reward,
         direction_reward_multiplier=1,
         with_animation=False 
         ) 
+        
+        # Initialize DQNAgent 
         tune_agent = DQNAgent(
-        statespace_size=11,
-        action_space_size=len(Action),
         alpha=alpha,
         discount_rate=discount_rate,
-        epsilon=1.0, 
         epsilon_decay=epsilon_decay,
-        epsilon_min=0.1,
         replay_memory_size=replay_memory_size,
         batch_size=batch_size,
         update_target_steps=update_target_steps
@@ -60,41 +66,41 @@ def DQN_Hyperparameter_Tune(trial: optuna.Trial) -> float:
 
 
         while not done: # Truncate episode after 40 steps
-              # Convert the current state to a numpy array for input to the neural network
-              state_array = tune_trainer.state_to_array(current_state)
+            # Convert the current state to a numpy array for input to the neural network
+            state_array = tune_trainer.state_to_array(current_state)
 
-              # Retrieve available actions from the current sub-environment
-              available_actions = tune_env.get_available_actions(current_state)
+            # Retrieve available actions from the current sub-environment
+            available_actions = tune_env.get_available_actions(current_state)
 
-              # Select an action using the agent's ε-greedy policy
-              action = tune_agent.select_action(state_array, available_actions)
+            # Select an action using the agent's ε-greedy policy
+            action = tune_agent.select_action(state_array, available_actions)
 
-              # Print the selected action
-              print(f"Selected Action: {action}")
+            # Print the selected action
+            print(f"Selected Action: {action}")
 
-              # Execute the action in the current sub-environment, receive reward and next state
-              reward, next_state = tune_env.step(action)
+            # Execute the action in the current sub-environment, receive reward and next state
+            reward, next_state = tune_env.step(action)
 
-              # Print the reward received after taking the action
-              print(f"Reward: {reward}")
+            # Print the reward received after taking the action
+            print(f"Reward: {reward}")
 
-              # Add the reward to the total reward for this episode
-              total_reward += reward
+            # Add the reward to the total reward for this episode
+            total_reward += reward
 
-              # Convert the next state to a numpy array
-              next_state_array = tune_trainer.state_to_array(next_state)
+            # Convert the next state to a numpy array
+            next_state_array = tune_trainer.state_to_array(next_state)
 
-              # Check if the next state is a goal state
-              done = tune_env.is_goal_state(next_state)
+            # Check if the next state is a goal state
+            done = tune_env.is_goal_state(next_state)
 
-              # Store experience in the agent's replay memory
-              tune_agent.remember((state_array, action.value, reward, next_state_array, done))
+            # Store experience in the agent's replay memory
+            tune_agent.remember((state_array, action.value, reward, next_state_array, done))
 
-              # Learn from experiences using experience replay
-              tune_agent.replay()
+            # Learn from experiences using experience replay
+            tune_agent.replay()
 
-              # Move to the next state
-              current_state = next_state
+            # Move to the next state
+            current_state = next_state
 
         # Store total reward of the episode
         tune_trainer.episode_rewards.append(total_reward)
@@ -106,18 +112,18 @@ def DQN_Hyperparameter_Tune(trial: optuna.Trial) -> float:
 
         return total_reward
 
-def main():
-    # Create an Optuna study
-    study = optuna.create_study(
-        direction='maximize',  # We want to maximize the total reward
-    )
-    
-    # Optimize the objective function
-    study.optimize(DQN_Hyperparameter_Tune)
-    
-    # Print the best hyperparameters and the best value
-    print("Best Hyperparameters: ", study.best_params)
-    print("Best Value: ", study.best_value)
+    def run_hyperparameter_tuning():
+        # Create an Optuna study
+        study = optuna.create_study(
+            direction='maximize',  # We want to maximize the total reward
+        )
+        
+        # Optimize the objective function
+        study.optimize(DQN_Hyperparameter_Tune)
+        
+        # Print the best hyperparameters and the best value
+        print("Best Hyperparameters: ", study.best_params)
+        print("Best Value: ", study.best_value)
 
 if __name__ == "__main__":
     main()
