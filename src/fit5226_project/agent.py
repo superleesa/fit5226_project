@@ -14,7 +14,7 @@ class DQNAgent:
         action_space_size: int = len(Action),
         alpha: float = 0.997,
         discount_rate: float = 0.95,
-        epsilon: float = 1.0,
+        epsilon: float = 0.6,
         epsilon_decay: float = 0.997,
         epsilon_min: float = 0.1,
         replay_memory_size: int = 1000,
