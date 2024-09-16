@@ -107,7 +107,7 @@ def DQN_Hyperparameter_Tune(trial: optuna.Trial) -> float:
 def main():
     # Create an Optuna study
     study = optuna.create_study(
-        direction='maximize',  # We want to maximize the average reward
+        direction='maximize',  # We want to maximize the total reward
     )
     
     # Optimize the objective function
