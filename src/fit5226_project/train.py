@@ -14,6 +14,7 @@ class Trainer:
         self.environment = environment
         self.current_sub_environment = None  # Track the current environment
         self.episode_rewards = []  # List to store total rewards for each episode
+        self.episode_steps = []  # List to store the number of steps per episode
 
 
     def train_one_episode(self) -> None:
@@ -80,6 +81,9 @@ class Trainer:
         # Store total reward of the episode
         self.episode_rewards.append(total_reward)
 
+        # Store the number of steps taken in the episode
+        self.episode_steps.append(step_count)  # New line added here
+
     def state_to_array(self, state: State) -> np.ndarray:
         """
         Converts a State object into a numpy array suitable for input to the DQN.
@@ -123,6 +127,7 @@ class Trainer:
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
         self.plot_training_loss(save=True, filename='training_loss_plot.png')
+        self.plot_steps_per_episode(save=True,filename='steps_per_episode_plot.png')
 
     def plot_training_loss(self, save: bool = False, filename: str = None) -> None:
         """
@@ -175,6 +180,21 @@ class Trainer:
         else:
             plt.show()
 
+    def plot_steps_per_episode(self, save: bool = False, filename: str = None) -> None:
+        """
+        Plot the number of steps taken per episode.
+        """
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.episode_steps, label='Steps per Episode')
+        plt.xlabel('Episode')
+        plt.ylabel('Number of Steps')
+        plt.title('Number of Steps Taken per Episode During Training')
+        plt.legend()
+        if save and filename:
+            plt.savefig(filename)
+            print(f"Steps per episode plot saved to {filename}")
+        else:
+            plt.show()
 
     def evaluate(self, num_episodes: int) -> None:
         """
