@@ -19,8 +19,8 @@ class Tuning:
 
     def objective(self, trial: optuna.Trial) -> float:
         # Hyperparameters to optimize
-        alpha = trial.suggest_uniform('alpha', 0.995, 0.999)
-        discount_rate = trial.suggest_uniform('discount_rate', 0.95, 0.975)
+        alpha = trial.suggest_float('alpha', 0.995, 0.999)
+        discount_rate = trial.suggest_float('discount_rate', 0.95, 0.975)
         epsilon = trial.suggest_categorical('epsilon', [0.2, 0.35, 0.45, 0.6])
         replay_memory_size = trial.suggest_int('replay_memory_size', 1000, 5000)
         batch_size = trial.suggest_categorical('batch_size', [16, 32, 64, 128, 256])
@@ -109,8 +109,11 @@ class Tuning:
         '''
         Run hyperparameter tunig and save the best parameters
         '''
+        # Define the number of trials
+        num_trials = 10
+
         # Optimize the objective function
-        self.study.optimize(self.objective, show_progress_bar=True)
+        self.study.optimize(self.objective, n_trials=num_trials, show_progress_bar=True)
         
         # Print the best hyperparameters and the best value
         print("Best Hyperparameters: ", self.study.best_params)
@@ -134,3 +137,4 @@ if __name__ == "__main__":
 
     # Visualize the hyperparameter tuning
     tuning.hyperparameter_tuning_visualization()
+
