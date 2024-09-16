@@ -3,11 +3,28 @@ import optuna
 import time
 import yaml
 
+from tqdm import tqdm
+
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.train import Trainer
 
 TIME_LIMIT = 10
+
+
+class TQDMCallback:
+    '''
+    Define a callback function to update tqdm
+    '''
+    def __init__(self):
+        self.pbar = tqdm(desc="Optimizing Trials")
+
+    def __call__(self, study, trial):
+        self.pbar.update()
+
+    def close(self):
+        self.pbar.close()
+
 
 class Tuning:
     def __init__(self, time_limit: int = TIME_LIMIT) -> None:
@@ -109,7 +126,7 @@ class Tuning:
         Run hyperparameter tunig and save the best parameters
         '''
         # Optimize the objective function
-        self.study.optimize(self.objective)
+        self.study.optimize(self.objective, show_progress_bar=True)
         
         # Print the best hyperparameters and the best value
         print("Best Hyperparameters: ", self.study.best_params)
