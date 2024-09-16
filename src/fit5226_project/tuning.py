@@ -1,7 +1,7 @@
 import optuna
 import random
 import numpy as np
-
+import yaml
 
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
@@ -10,13 +10,13 @@ from fit5226_project.train import Trainer
 
 class Tuning:
     def __init__(self) -> None:
-        self.study = optuna.create_study(direction='maximize')
+        self.study = optuna.create_study(direction='maximize') # Create an Optuna study
 
     def objective(trial: optuna.Trial) -> float:
         # Hyperparameters to optimize
         alpha = trial.suggest_uniform('alpha', 0.995, 0.999)
         discount_rate = trial.suggest_uniform('discount_rate', 0.95, 0.975)
-        epsilon_decay = trial.suggest_uniform('epsilon_decay', 0.975, 0.995)
+        epsilon = trial.suggest_uniform('epsilon', 0.2, 0.6)
         replay_memory_size = trial.suggest_int('replay_memory_size', 1000, 5000)
         batch_size = trial.suggest_categorical('batch_size', [16, 32, 64, 128, 256])
         update_target_steps = trial.suggest_int('update_target_steps', 500, 1000)
@@ -42,7 +42,7 @@ class Tuning:
         tune_agent = DQNAgent(
         alpha=alpha,
         discount_rate=discount_rate,
-        epsilon_decay=epsilon_decay,
+        epsilon=epsilon,
         replay_memory_size=replay_memory_size,
         batch_size=batch_size,
         update_target_steps=update_target_steps
@@ -59,7 +59,6 @@ class Tuning:
         current_state = tune_env.get_state()  # Get state from current sub-environment
         done = False
         total_reward = 0  # Track total reward for the episode
-        step_count = 0  # Initialize step counter
             
         for episode in range(num_episodes):
             print(f"Starting Episode {episode + 1}")
@@ -112,18 +111,32 @@ class Tuning:
 
         return total_reward
 
-    def run_hyperparameter_tuning():
-        # Create an Optuna study
-        study = optuna.create_study(
-            direction='maximize',  # We want to maximize the total reward
-        )
-        
+    def run_hyperparameter_tuning(self):
+        '''
+        Run hyperparameter tunig and save the best parameters
+        '''
         # Optimize the objective function
-        study.optimize(DQN_Hyperparameter_Tune)
+        self.study.optimize(self.objective)
         
         # Print the best hyperparameters and the best value
-        print("Best Hyperparameters: ", study.best_params)
-        print("Best Value: ", study.best_value)
+        print("Best Hyperparameters: ", self.study.best_params)
+        print("Best Value: ", self.study.best_value)
+
+        # Save the best hyperparameters to a YAML file
+        with open("config.yml", "w") as file:
+            yaml.dump(self.study.best_params, file, default_flow_style=False)
+    
+    def hyperparameter_tuning_visualization(self):
+        '''
+        Visualize the optimization history
+        '''
+        optuna.visualization.plot_optimization_history(self.study)
 
 if __name__ == "__main__":
-    main()
+    tuning = Tuning()
+
+    # Conduct hyperparameter tuning
+    tuning.run_hyperparameter_tuning() 
+
+    # Visualize the hyperparameter tuning
+    tuning.hyperparameter_tuning_visualization()
