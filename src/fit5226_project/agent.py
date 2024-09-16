@@ -41,6 +41,7 @@ class DQNAgent:
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.alpha)
         self.loss_fn = torch.nn.MSELoss()
+        self.loss_history = []  # Initialize an empty list to store loss values
         self.steps = 0  # to track when to update target network
 
     def prepare_torch(self, statespace_size: int):
@@ -155,6 +156,9 @@ class DQNAgent:
         if self.steps % self.update_target_steps == 0:
             self.update_target_network()
 
+        # Append the loss to the loss history for plotting later
+        self.loss_history.append(loss)
+
     def save_state(self, filepath):
         """Save the entire agent state, including model weights and hyperparameters."""
         torch.save({
@@ -185,5 +189,3 @@ class DQNAgent:
         self.steps = checkpoint['steps']  # Restore steps
         random.setstate(checkpoint['random_state'])  # Restore Python random state
         np.random.set_state(checkpoint['numpy_random_state'])  # Restore Numpy random state
-        # If using a learning rate scheduler:
-        # scheduler.load_state_dict(checkpoint['scheduler_state_dict'])  # Restore scheduler state

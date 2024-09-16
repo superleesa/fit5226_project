@@ -122,6 +122,23 @@ class Trainer:
         # Plot and save the rewards and epsilon decay after training is complete
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
+        self.plot_training_loss(save=True, filename='training_loss_plot.png')
+
+    def plot_training_loss(self, save: bool = False, filename: str = None) -> None:
+        """
+        Plot the training loss over episodes.
+        """
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.agent.loss_history, label='Training Loss')
+        plt.xlabel('Training Steps')
+        plt.ylabel('Loss')
+        plt.title('Training Loss over Time')
+        plt.legend()
+        if save and filename:
+            plt.savefig(filename)
+            print(f"Training loss plot saved to {filename}")
+        else:
+            plt.show()
 
 
     def plot_rewards(self, save: bool = False, filename: str = None) -> None:
