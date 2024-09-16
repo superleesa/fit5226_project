@@ -144,7 +144,7 @@ class Environment:
             return -self.item_state_reward //2 # Large penalty for going to goal without item
 
         # Large reward for reaching the goal with the item
-        if self.is_goal_state(current_state) and current_state.has_item:
+        if self.is_goal_state(current_state):
             return self.goal_state_reward *2 # High reward for successfully reaching the goal with item
         
         #  # Large penalty for reaching the goal without the item
