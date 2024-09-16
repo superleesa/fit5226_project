@@ -12,8 +12,11 @@ from fit5226_project.state import State, Assignment2State
 
 
 DEFAULT_TIME_PENALTY = -1
+NON_GOAL_PENALTY = -100
+NON_ITEM_PENALTY = -50
 GOAL_STATE_REWARD = 300
 DEFAULT_ITEM_REWARD = 200
+
 
 
 class Environment:
@@ -23,6 +26,8 @@ class Environment:
         item: ItemObject | None = None,
         goal_location: tuple[int, int] = (4, 0),
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
+        non_goal_penalty: int | float = NON_GOAL_PENALTY,
+        non_item_penalty: int | float = NON_ITEM_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
         with_animation: bool = True,
@@ -30,6 +35,8 @@ class Environment:
         self.n = n
         self.goal_location = goal_location
         self.time_penalty = time_penalty
+        self.non_goal_penalty = non_goal_penalty
+        self.non_item_penalty = non_item_penalty
         self.item_state_reward = item_state_reward
         self.goal_state_reward = goal_state_reward
 
@@ -221,11 +228,11 @@ class Environment:
 
         # Large penalty for reaching the goal without the item
         if current_state.agent_location == self.goal_location and not current_state.has_item:
-            return -self.item_state_reward //2 # Large penalty for going to goal without item
+            return self.non_goal_penalty # Large penalty for going to goal without item
 
         # Large reward for reaching the goal with the item
-        if self.is_goal_state(current_state) and current_state.has_item:
-            return self.goal_state_reward *2 # High reward for successfully reaching the goal with item
+        if self.is_goal_state(current_state):
+            return self.goal_state_reward # High reward for successfully reaching the goal with item
         
         #  # Large penalty for reaching the goal without the item
         # if prev_state.agent_location == current_state.item_location and current_state.has_item and prev_state.has_item :
@@ -237,21 +244,10 @@ class Environment:
 
         # Penalize if attempting to collect when not at item location or already has item
         if action == Action.COLLECT and (prev_state.has_item or prev_state.agent_location != current_state.item_location):
-            return -50  # Penalty for attempting to collect when not at item or already collected
+            return self.non_item_penalty  # Penalty for attempting to collect when not at item or already collected
 
         # Calculate distance-based reward or penalty
         reward = self.time_penalty  # Default time penalty
-
-        if not current_state.has_item:  # Moving towards the item
-            distance_to_item = np.linalg.norm(np.array(current_state.agent_location) - np.array(current_state.item_location))
-            prev_distance_to_item = np.linalg.norm(np.array(prev_state.agent_location) - np.array(prev_state.item_location))
-            if distance_to_item < prev_distance_to_item:
-                reward = -0.5  # Small reward for moving closer to the item
-        else:  # Moving towards the goal after collecting the item
-            distance_to_goal = np.linalg.norm(np.array(current_state.agent_location) - np.array(self.goal_location))
-            prev_distance_to_goal = np.linalg.norm(np.array(prev_state.agent_location) - np.array(self.goal_location))
-            if distance_to_goal < prev_distance_to_goal:
-                reward = -0.5  # Small reward for moving closer to the goal
 
         # # Penalize if 2 back-to-back actions do not give -0.5 reward each
         # if self.last_action is not None and self.last_reward != -0.5 and reward != -0.5:
@@ -356,6 +352,8 @@ class Assignment2Environment:
         self, 
         n: int = 5,
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
+        non_goal_penalty: int | float = NON_GOAL_PENALTY,
+        non_item_penalty: int | float = NON_ITEM_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
         direction_reward_multiplier: int | float = 1,
@@ -377,6 +375,8 @@ class Assignment2Environment:
                             item=ItemObject(location=(item_x, item_y)),
                             with_animation=with_animation,
                             time_penalty=time_penalty,
+                            non_goal_penalty=non_goal_penalty,
+                            non_item_penalty=non_item_penalty,
                             item_state_reward=item_state_reward,
                             goal_state_reward=goal_state_reward,
                         )
