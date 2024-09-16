@@ -9,7 +9,7 @@ from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.train import Trainer
 
-TIME_LIMIT = 60
+TIME_LIMIT = 10
 
 
 class Tuning:
