@@ -133,41 +133,48 @@ class Environment:
         # if len(self.action_history) > 3:  # Keep only the last three actions
         #     self.action_history.pop(0)
 
-
-
         # Large penalty for reaching the goal without the item
         if current_state.agent_location == self.goal_location and not current_state.has_item:
+            # print('reaching the goal without the item')
             return -self.item_state_reward //2 # Large penalty for going to goal without item
 
         # Large reward for reaching the goal with the item
-        if self.is_goal_state(current_state) and current_state.has_item:
-            return self.goal_state_reward *2 # High reward for successfully reaching the goal with item
+        if self.is_goal_state(current_state):
+            # print('reaching the goal with the item')
+            # print(self.goal_state_reward)
+            return self.goal_state_reward # High reward for successfully reaching the goal with item
         
         #  # Large penalty for reaching the goal without the item
         # if prev_state.agent_location == current_state.item_location and current_state.has_item and prev_state.has_item :
         #     return -self.item_state_reward // 2 # Large penalty for going to item location with item
 
         # Reward for collecting the item
-        if action == Action.COLLECT and prev_state.agent_location == current_state.item_location and not prev_state.has_item:
+        if action == Action.COLLECT and current_state.agent_location == current_state.item_location and not prev_state.has_item:
+            # print('Reward for collecting the item')
+            # print(current_state.agent_location)
+            # print(current_state.item_location)
+
+            # print(self.item_state_reward)
             return self.item_state_reward  # Reward for collecting the item
 
         # Penalize if attempting to collect when not at item location or already has item
-        if action == Action.COLLECT and (prev_state.has_item or prev_state.agent_location != current_state.item_location):
+        if action == Action.COLLECT and (current_state.has_item or current_state.agent_location != current_state.item_location):
+            # print('if attempting to collect when not at item location or already has item')
             return -50  # Penalty for attempting to collect when not at item or already collected
 
         # Calculate distance-based reward or penalty
         reward = self.time_penalty  # Default time penalty
 
-        if not current_state.has_item:  # Moving towards the item
-            distance_to_item = np.linalg.norm(np.array(current_state.agent_location) - np.array(current_state.item_location))
-            prev_distance_to_item = np.linalg.norm(np.array(prev_state.agent_location) - np.array(prev_state.item_location))
-            if distance_to_item < prev_distance_to_item:
-                reward = 0.5*100  # Small reward for moving closer to the item
-        else:  # Moving towards the goal after collecting the item
-            distance_to_goal = np.linalg.norm(np.array(current_state.agent_location) - np.array(self.goal_location))
-            prev_distance_to_goal = np.linalg.norm(np.array(prev_state.agent_location) - np.array(self.goal_location))
-            if distance_to_goal < prev_distance_to_goal:
-                reward = 0.5*100  # Small reward for moving closer to the goal
+        # if not current_state.has_item:  # Moving towards the item
+        #     distance_to_item = np.linalg.norm(np.array(current_state.agent_location) - np.array(current_state.item_location))
+        #     prev_distance_to_item = np.linalg.norm(np.array(prev_state.agent_location) - np.array(prev_state.item_location))
+        #     if distance_to_item < prev_distance_to_item:
+        #         reward = 20  # Small reward for moving closer to the item
+        # else:  # Moving towards the goal after collecting the item
+        #     distance_to_goal = np.linalg.norm(np.array(current_state.agent_location) - np.array(self.goal_location))
+        #     prev_distance_to_goal = np.linalg.norm(np.array(prev_state.agent_location) - np.array(self.goal_location))
+        #     if distance_to_goal < prev_distance_to_goal:
+        #         reward = 20  # Small reward for moving closer to the goal
 
         # # Penalize if 2 back-to-back actions do not give -0.5 reward each
         # if self.last_action is not None and self.last_reward != -0.5 and reward != -0.5:
@@ -176,6 +183,7 @@ class Environment:
         # # Update last action and reward for the next step
         # self.last_action = action
         # self.last_reward = reward
+        # print('ELSE')
 
         return reward
 

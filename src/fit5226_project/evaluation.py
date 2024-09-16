@@ -17,7 +17,7 @@ class Evaluation:
         # all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
         # self.q_learning_envs = [Environment(item = item, with_animation=False) for item in all_items]
 
-        self.dqn_envs = Assignment2Environment(n=4, with_animation=False)
+        self.dqn_envs = Assignment2Environment(n=3, with_animation=True)
         self.dqn_agent = DQNAgent()
     
     # def run_train(self) -> None:
@@ -32,7 +32,7 @@ class Evaluation:
         Trains DQN agent in the environment and save the states.
         """
         trainer = Trainer(self.dqn_agent, self.dqn_envs)
-        trainer.train(num_episodes=500)
+        trainer.train(num_episodes=200)
         self.dqn_agent.save_state("trained_dqn_agent_2.pth")
 
     def load_trained_dqn(self, path: str):
@@ -195,22 +195,25 @@ class Evaluation:
         """
         for _ in (0, num_of_vis):
             self.dqn_envs.set_with_animation(True)
-            self.dqn_envs.initialize_for_new_episode((1,3))
+            self.dqn_envs.initialize_for_new_episode()
 
             # Run the agent in the environment
             current_state = self.dqn_envs.get_state()
             print(current_state)
             while not self.dqn_envs.is_goal_state(current_state):
                 state_array = self.state_to_array(current_state)
-                print(state_array)
-                qvals = self.dqn_agent.get_qvals(state_array)
-                print(qvals)
-                action = Action(np.argmax(qvals))
-                print(action)
+                # print(state_array)
+                # qvals = self.dqn_agent.get_qvals(state_array)
+                # print(qvals)
+                # action = Action(np.argmax(qvals))
+                # print(action)
 
                 # Execute the action in the environment
+                # _, next_state = self.dqn_envs.step(action)
+                possible_actions = self.dqn_envs.get_available_actions(current_state)
+                action = self.dqn_agent.select_action(state_array, possible_actions, True)
                 _, next_state = self.dqn_envs.step(action)
-                print(next_state)
+                # print(next_state)
                 current_state = next_state
 
 
@@ -270,11 +273,22 @@ if __name__ == "__main__":
 
     # # visualize randomly the environments and show the steps of the agent
     # evl.visualize()
+    # a = (0,1)
+    # b = (5,5)
+    # c = (0,1)
+    # d = (0,3)
+    # # distance_to_goal = np.linalg.norm(np.array((0,1)) - np.array((5,5)))
+    # distance_to_goal = 
+    # # prev_distance_to_goal = np.linalg.norm(np.array((0,1)) - np.array((0,3)))
+    # prev_distance_to_goal = 
+    # print(distance_to_goal)
+    # print(prev_distance_to_goal)
+
 
     # DQN
     evl = Evaluation()
     evl.run_dqn_train()
-    # evl.load_trained_dqn('/Users/sho/Monash/FIT5226/project/trained_dqn_agent_2.pth')
+    evl.load_trained_dqn('/Users/sho/Monash/FIT5226/project/trained_dqn_agent_2.pth')
 
     # Conduct the performance test
     # average_score = evl.dqn_performance_test()

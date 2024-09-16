@@ -14,8 +14,8 @@ class DQNAgent:
         action_space_size: int = len(Action),
         alpha: float = 0.0001,
         discount_rate: float = 0.95,
-        epsilon: float = 1,
-        epsilon_decay: float = 0.97,
+        epsilon: float = 0.5,
+        epsilon_decay: float = 0.997,
         epsilon_min: float = 0.1,
         replay_memory_size: int = 1000,
         batch_size: int = 30,
@@ -66,11 +66,12 @@ class DQNAgent:
         """
         self.target_model.load_state_dict(self.model.state_dict())
 
-    def select_action(self, state: np.ndarray, available_actions: List[Action]) -> Action:
+    def select_action(self, state: np.ndarray, available_actions: List[Action], is_test: bool = False) -> Action:
         """
         Select an action using an ε-greedy policy.
         """
-        if random.random() < self.epsilon:
+
+        if is_test == False and random.random() < self.epsilon:
             return random.choice(available_actions)
         else:
             qvals = self.get_qvals(state)
