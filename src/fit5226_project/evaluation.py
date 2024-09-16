@@ -180,14 +180,14 @@ class Evaluation:
         total_score = 0
 
         # Loop over all environments in DQN environment
-        for env in tqdm(self.dqn_envs.environments):
+        for i, env in tqdm(enumerate(self.dqn_envs.environments)):
             env.set_with_animation(False)
             for agent_location in tqdm(self.generate_grid_location_list(self.n, self.n)):
                 if agent_location == env.item.location or agent_location == env.goal_location:
                     continue
 
                 # Initialize episode with a given agent location
-                env.initialize_for_new_episode(agent_location=agent_location)
+                self.dqn_envs.initialize_for_new_episode(agent_location=agent_location, index=i)
                 start_location = env.agent.location
                 item_location = env.item.location
 
@@ -199,14 +199,16 @@ class Evaluation:
                 )
 
                 # Start testing the agent
-                current_state = env.get_state()
+                current_state = self.dqn_envs.get_state()
                 num_steps = 0
-                while not env.is_goal_state(current_state):
-                    action = self.agent.select_action(current_state)
-                    # Take a step in the environment and observe the next state and if goal is reached
-                    _, next_state = env.step(action)
-                    current_state = next_state
-                    num_steps += 1
+                while not self.dqn_envs.is_goal_state(current_state):
+                    state_array = self.state_to_array(current_state) # converts state to array format
+                    # Execute the action in the environment
+                    possible_actions = self.dqn_envs.get_available_actions(current_state)
+                    action = self.dqn_agent.select_action(state_array, possible_actions, True)
+                    _, next_state = self.dqn_envs.step(action)
+                    current_state = next_state # update the current state to next state
+                    num_steps += 1 # update the steps
 
                 # Calculate and accumulate the score
                 total_score += self.calculate_metrics_score(shortest_distance, num_steps)
