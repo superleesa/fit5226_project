@@ -1,17 +1,25 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import mlflow
 import time
+from pathlib import Path
 
 from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State
-from fit5226_project.actions import Action
 from fit5226_project.tracker import mlflow_manager
 
 class Trainer:
-    def __init__(self, agent: DQNAgent, environment: Assignment2Environment, with_log: bool = False, log_step: int = 100, update_target_episodes: int = 20, num_validation_episodes: int = 30) -> None:
+    def __init__(
+        self,
+        agent: DQNAgent, 
+        environment: Assignment2Environment, 
+        with_log: bool = False, 
+        log_step: int = 100, 
+        update_target_episodes: int = 20, 
+        num_validation_episodes: int = 30, 
+        save_checkpoint_interval: int = 50,  # in episodes
+    ) -> None:
         """
         Initialize the Trainer with the DQN agent and environment.
         """
@@ -26,6 +34,8 @@ class Trainer:
         self.global_step = 0
         self.log_step = log_step
         self.num_validation_episodes = num_validation_episodes
+        
+        self.save_checkpoint_interval = save_checkpoint_interval
 
 
     def train_one_episode(self, epoch_idx: int) -> None:
@@ -89,6 +99,7 @@ class Trainer:
         Train the agent across multiple episodes.
         """
         num_nn_passes = 0
+        current_best_validation_score = -float('inf')
         for episode in range(1, num_episodes+1):
             print(f"Starting Episode {episode + 1}")
             self.train_one_episode(episode)
@@ -98,10 +109,17 @@ class Trainer:
                     print("Target network updated")
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
             if self.agent.steps != num_nn_passes:
-                self.validate(episode)
+                validation_score = self.validate(episode)
+                if validation_score > current_best_validation_score:
+                    print(f"New best validation score: {validation_score}")
+                    current_best_validation_score = validation_score
+                    self.save_agent(episode)
                 self.visualize_sample_episode()
                 num_nn_passes = self.agent.steps
-        # mlflow.end_run()
+            if episode % self.save_checkpoint_interval == 0:
+                self.save_agent(episode)
+                
+        
         # Plot and save the rewards and epsilon decay after training is complete
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
@@ -170,8 +188,12 @@ class Trainer:
             mlflow_manager.log_validation_score(result, step=current_episode_index)
         return result
 
+    def save_agent(self, episode_index: int) -> None:
+        save_path = Path(f"checkpoints/episode_{episode_index}.pt")
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+        self.agent.save_state(save_path)
 
-    def plot_rewards(self, save: bool = False, filename: str = None) -> None:
+    def plot_rewards(self, save: bool = False, filename: str | None = None) -> None:
         """
         Plot the total reward earned per episode.
         """
@@ -187,7 +209,7 @@ class Trainer:
         else:
             plt.show()
 
-    def plot_epsilon_decay(self, num_episodes: int, save: bool = False, filename: str = None) -> None:
+    def plot_epsilon_decay(self, num_episodes: int, save: bool = False, filename: str | None = None) -> None:
         """
         Plot the epsilon decay over episodes.
         """
