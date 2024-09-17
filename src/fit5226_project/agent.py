@@ -121,8 +121,8 @@ class DQNAgent:
         state_tensors = torch.cat([torch.from_numpy(s).float().unsqueeze(0) for s in states])
         action_tensors = torch.tensor(actions, dtype=torch.long).unsqueeze(1)
         target_tensors = torch.tensor(targets, dtype=torch.float)
-
-        # Calculate current Q values
+        
+        self.optimizer.zero_grad()
         qvals = self.model(state_tensors).gather(1, action_tensors).squeeze()
         losses = self.loss_fn(qvals, target_tensors)
         loss = losses.mean()
