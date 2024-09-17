@@ -173,7 +173,7 @@ class DQNAgent:
 
         # Train the model
         loss = self.train_one_step(states, actions, targets)
-
+        
         # Update target network periodically
         self.steps += 1
         if self.steps % self.update_target_steps == 0:

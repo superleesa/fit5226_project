@@ -9,12 +9,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Trainer:
-    def __init__(self, agent: DQNAgent, environment: Assignment2Environment) -> None:
+    def __init__(self, agent: DQNAgent, environment: Assignment2Environment, with_log: bool = False, log_step: int = 100, update_target_episodes: int = 20,) -> None:
         """
         Initialize the Trainer with the DQN agent and environment.
         """
         self.agent = agent
         self.environment = environment
+        
+        self.update_target_episodes = update_target_episodes
         
         self.episode_rewards: list[float] = []
 
@@ -72,7 +74,8 @@ class Trainer:
         """
         for episode in range(num_episodes):
             print(f"Starting Episode {episode + 1}")
-            self.train_one_episode()
+            if episode % self.update_target_episodes == 0:
+                self.agent.update_target_network()
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
 
         # Plot and save the rewards and epsilon decay after training is complete
