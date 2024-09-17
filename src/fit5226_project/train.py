@@ -156,7 +156,6 @@ class Trainer:
                 
                 # check for three-step cycle and stop early
                 if next_state == prev_state:
-                    print("cycle detected... breaking")
                     predicted_steps = 0
                     break
                 prev_state = current_state
@@ -167,7 +166,6 @@ class Trainer:
         result = sum(calulated_scores) / self.num_validation_episodes
         if self.with_log:
             mlflow_manager.log_validation_score(result, step=current_episode_index)
-        print('Metrics score: ', result)
         return result
 
 
