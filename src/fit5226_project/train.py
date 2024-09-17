@@ -29,6 +29,7 @@ class Trainer:
         self.update_target_episodes = update_target_episodes
         
         self.episode_rewards: list[float] = []
+        self.validation_scores: list[float] = []
         
         self.with_log = with_log
         self.global_step = 0
@@ -99,7 +100,7 @@ class Trainer:
             self.train_one_episode(episode)
 
             if episode % 10 == 0:
-                print(self.agent.logged_data)
+                # print(self.agent.logged_data)
                 self.plotter.update_plot(self.agent.logged_data)
 
             if episode % self.update_target_episodes == 0:
@@ -109,6 +110,7 @@ class Trainer:
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
             if self.agent.steps != num_nn_passes:
                 validation_score = self.validate(episode)
+                self.validation_scores.append(validation_score)
                 if validation_score > current_best_validation_score:
                     print(f"New best validation score: {validation_score}")
                     current_best_validation_score = validation_score
@@ -122,6 +124,7 @@ class Trainer:
         # Plot and save the rewards and epsilon decay after training is complete
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
+        self.plot_validation_scores(save=True, filename='validation_score_plot.png')  # Plot validation scores
         self.plotter.update_plot(self.agent.logged_data)
 
     def visualize_sample_episode(self) -> None:
@@ -184,6 +187,8 @@ class Trainer:
             calulated_scores.append(calculate_metrics_score(predicted_steps, start_location, item_location, goal_location))
         
         result = sum(calulated_scores) / self.num_validation_episodes
+
+
         return result
 
     def save_agent(self, episode_index: int) -> None:
@@ -204,6 +209,22 @@ class Trainer:
         if save and filename:
             plt.savefig(filename)
             print(f"Reward plot saved to {filename}")
+        else:
+            plt.show()
+
+    def plot_validation_scores(self, save: bool = False, filename: str | None = None) -> None:
+        """
+        Plot the validation scores over episodes.
+        """
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.validation_scores, label='Validation Score per Episode')
+        plt.xlabel('Episode')
+        plt.ylabel('Validation Score')
+        plt.title('Validation Score Over Episodes')
+        plt.legend()
+        if save and filename:
+            plt.savefig(filename)
+            print(f"Validation score plot saved to {filename}")
         else:
             plt.show()
 
