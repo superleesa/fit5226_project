@@ -32,7 +32,7 @@ class Evaluation:
         Trains DQN agent in the environment and save the states.
         """
         trainer = Trainer(self.dqn_agent, self.dqn_envs)
-        trainer.train(num_episodes=500)
+        trainer.train(num_episodes=110)
         self.dqn_agent.save_state("trained_dqn_agent_2.pth")
 
     def load_trained_dqn(self, path: str):
