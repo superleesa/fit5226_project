@@ -364,8 +364,8 @@ class Assignment2Environment:
     def get_random_sub_environment(self) -> Environment:
         return choice(self.environments)
     
-    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None, index: int | None = None) -> None:
-        self.current_sub_environment = self.get_random_sub_environment() if index is None else self.environments[index]
+    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None, env_index: int | None = None) -> None:
+        self.current_sub_environment = self.get_random_sub_environment() if env_index is None else self.environments[env_index]
         self.current_sub_environment.initialize_for_new_episode(agent_location)
         
         self.state = Assignment2State(
