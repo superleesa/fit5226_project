@@ -2,7 +2,7 @@ import random
 import numpy as np
 from tqdm import tqdm
 
-# from fit5226_project.agent import Agent, Trainer, ItemObject, generate_grid_location_list, DQNAgent
+from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
 from fit5226_project.train import Trainer
 from fit5226_project.env import Assignment2Environment
@@ -189,17 +189,6 @@ class Evaluation:
     #     print(f"Success Rate: {success_rate:.2f}% over {num_episodes} episodes.")
 
 if __name__ == "__main__":
-    # # Q Learning
-    # evl = Evaluation()
-    # evl.run_train()
-
-    # # Conduct the performance test
-    # average_score = evl.q_learning_performance_test()
-    # print(f"Average performance score (1 is the best): {average_score:.4f}")
-
-    # # visualize randomly the environments and show the steps of the agent
-    # evl.visualize()
-
     # DQN
     evl = Evaluation()
     evl.run_dqn_train()
@@ -211,10 +200,6 @@ if __name__ == "__main__":
 
     # visualize randomly the environments and show the steps of the agent
     # evl.visualize_dqn()
-
-
-    # Evaluate the trained model
-    # trainer.evaluate(num_episodes=5)
 
 
 

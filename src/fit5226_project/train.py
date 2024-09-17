@@ -134,6 +134,7 @@ class Trainer:
         for _ in range(self.num_validation_episodes):
             sample_env = Assignment2Environment(n=4, with_animation=False)
             sample_env.initialize_for_new_episode()
+            sample_env.current_sub_environment.agent.has_item = False # metric assumes that agent starts without item
             current_state = sample_env.get_state()
             start_time = time.time()
             done = False
@@ -144,7 +145,7 @@ class Trainer:
             prev_state = None
             predicted_steps = 0
             while not done:
-                if time.time() - start_time < 1*20:
+                if time.time() - start_time > 20:
                     predicted_steps = 0
                     break
                 state_array = self.state_to_array(current_state)
@@ -166,6 +167,7 @@ class Trainer:
         result = sum(calulated_scores) / self.num_validation_episodes
         if self.with_log:
             mlflow_manager.log_validation_score(result, step=current_episode_index)
+        print('Metrics score: ', result)
         return result
 
 
