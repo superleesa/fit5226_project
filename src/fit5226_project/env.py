@@ -115,7 +115,7 @@ class Environment:
 
         # Large penalty for reaching the goal without the item
         if current_state.agent_location == self.goal_location and not current_state.has_item:
-            return -self.item_state_reward //2 # Large penalty for going to goal without item
+            return self.goal_no_item_penalty
 
         # Large reward for reaching the goal with the item
         if self.is_goal_state(current_state):
