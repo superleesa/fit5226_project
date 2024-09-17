@@ -42,7 +42,7 @@ class Trainer:
             done = self.environment.is_goal_state(next_state)
             total_reward += reward
             
-            self.agent.remember((state_array, action.value, reward, next_state_array, done))
+            self.agent.replay_buffer.remember((state_array, action.value, reward, next_state_array, done))
             self.agent.replay()  # maybe train inside
             
             current_state = next_state

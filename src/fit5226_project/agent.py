@@ -28,12 +28,7 @@ class DQNAgent:
         self.discount_rate = discount_rate  # discount factor for future rewards
         self.epsilon = epsilon  # exploration rate
         self.epsilon_decay = epsilon_decay  # rate at which exploration rate decays
-        self.epsilon_min = epsilon_min  # minimum exploration rate
-        self.replay_memory = []  # experience replay memory
-        self.replay_memory_size = replay_memory_size  # maximum size of replay memory
-        self.batch_size = batch_size  # batch size for experience replay
-        self.update_target_steps = update_target_steps  # steps after which to update target network
-        self.action_space_size = action_space_size  # number of possible actions
+        self.replay_buffer = PrioritizedExperienceBuffer(max_size=replay_memory_size)
         
         # Initialize DQN models
         self.model = self.prepare_torch(statespace_size)  # prediction model
@@ -41,7 +36,7 @@ class DQNAgent:
 
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.alpha, amsgrad=True)
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=1000, gamma=0.9)
-        self.loss_fn = torch.nn.MSELoss()
+        self.loss_fn = torch.nn.MSELoss(reduction='none')
         self.steps = 0  # to track when to update target network
         self.tau = 0.005
         
@@ -129,15 +124,22 @@ class DQNAgent:
 
         # Calculate current Q values
         qvals = self.model(state_tensors).gather(1, action_tensors).squeeze()
-
-        # Compute loss
-        loss = self.loss_fn(qvals, target_tensors)
-
-        # Backpropagation
-        self.optimizer.zero_grad()
+        losses = self.loss_fn(qvals, target_tensors)
+        loss = losses.mean()
         loss.backward()
         self.optimizer.step()
-
+        self.scheduler.step()
+        
+        if self.with_log and self.steps % self.loss_log_interval == 0:
+            with torch.no_grad():
+                mlflow_manager.log_avg_predicted_qval(qvals.mean().item(), step=self.steps)
+                mlflow_manager.log_avg_target_qval(target_tensors.mean().item(), step=self.steps)
+                mlflow_manager.log_max_predicted_qval(qvals.max().item(), step=self.steps)
+                mlflow_manager.log_max_target_qval(target_tensors.max().item(), step=self.steps)
+        
+        with torch.no_grad():
+            self.replay_buffer.update_priorities(losses.detach().numpy())  # TODO: maybe using l1 better (at least original paper uses l1)
+            
         return loss.item()
 
     def remember(self, experience: Tuple[np.ndarray, int, float, np.ndarray, bool]) -> None:
