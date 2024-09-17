@@ -3,6 +3,7 @@ import numpy as np
 import mlflow
 import time
 
+from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State
@@ -10,7 +11,7 @@ from fit5226_project.actions import Action
 from fit5226_project.tracker import mlflow_manager
 
 class Trainer:
-    def __init__(self, agent: DQNAgent, environment: Assignment2Environment, with_log: bool = False, log_step: int = 100, update_target_episodes: int = 20,) -> None:
+    def __init__(self, agent: DQNAgent, environment: Assignment2Environment, with_log: bool = False, log_step: int = 100, update_target_episodes: int = 20, num_validation_episodes: int = 30) -> None:
         """
         Initialize the Trainer with the DQN agent and environment.
         """
@@ -24,6 +25,7 @@ class Trainer:
         self.with_log = with_log
         self.global_step = 0
         self.log_step = log_step
+        self.num_validation_episodes = num_validation_episodes
 
 
     def train_one_episode(self, epoch_idx: int) -> None:
@@ -96,14 +98,15 @@ class Trainer:
                     print("Target network updated")
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
             if self.agent.steps != num_nn_passes:
-                self.validate()
+                self.validate(episode)
+                self.visualize_sample_episode()
                 num_nn_passes = self.agent.steps
         # mlflow.end_run()
         # Plot and save the rewards and epsilon decay after training is complete
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
 
-    def validate(self) -> None:
+    def visualize_sample_episode(self) -> None:
         sample_env = Assignment2Environment(n=4, with_animation=True)
         sample_env.initialize_for_new_episode()
         current_state = sample_env.get_state()
@@ -125,6 +128,46 @@ class Trainer:
                 break
             prev_state = current_state
             current_state = next_state
+
+    def validate(self, current_episode_index: int):
+        calulated_scores = []
+        for _ in range(self.num_validation_episodes):
+            sample_env = Assignment2Environment(n=4, with_animation=False)
+            sample_env.initialize_for_new_episode()
+            current_state = sample_env.get_state()
+            start_time = time.time()
+            done = False
+            start_location = sample_env.current_sub_environment.agent.get_location()
+            item_location = sample_env.current_sub_environment.item.get_location()
+            goal_location = sample_env.current_sub_environment.goal_location
+            
+            prev_state = None
+            predicted_steps = 0
+            while not done:
+                if time.time() - start_time < 1*20:
+                    predicted_steps = 0
+                    break
+                state_array = self.state_to_array(current_state)
+                available_actions = sample_env.get_available_actions(current_state)
+                action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions, is_test=True)
+                reward, next_state = sample_env.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
+                done = sample_env.is_goal_state(next_state)
+                
+                # check for three-step cycle and stop early
+                if next_state == prev_state:
+                    print("cycle detected... breaking")
+                    predicted_steps = 0
+                    break
+                prev_state = current_state
+                current_state = next_state
+                predicted_steps += 1
+            calulated_scores.append(calculate_metrics_score(predicted_steps, start_location, item_location, goal_location))
+        
+        result = sum(calulated_scores) / self.num_validation_episodes
+        if self.with_log:
+            mlflow_manager.log_validation_score(result, step=current_episode_index)
+        return result
+
 
     def plot_rewards(self, save: bool = False, filename: str = None) -> None:
         """
@@ -159,42 +202,3 @@ class Trainer:
             print(f"Epsilon decay plot saved to {filename}")
         else:
             plt.show()
-
-
-    def evaluate(self, num_episodes: int) -> None:
-        """
-        Evaluate the agent's performance over a specified number of episodes.
-        """
-        success_count = 0
-
-        for episode in range(num_episodes):
-            print(f"Starting Evaluation Episode {episode + 1}")
-            self.environment.initialize_for_new_episode()
-            # Ensure reference is updated to the new environment for each episode
-            self.current_sub_environment = self.environment.current_sub_environment
-
-            current_state = self.current_sub_environment.get_state()  # Use current sub-environment's state
-            done = False
-
-            while not done:
-                # Convert the current state to a numpy array for input to the neural network
-                state_array = self.state_to_array(current_state)
-
-                # Select the best action (exploitation only, no exploration)
-                qvals = self.agent.get_qvals(state_array)
-                action = Action(np.argmax(qvals))
-
-                # Execute the action in the environment
-                reward, next_state = self.current_sub_environment.step(action)
-
-                # Check if the next state is a goal state
-                done = self.current_sub_environment.is_goal_state(next_state)
-                current_state = next_state
-
-            # Check if the episode was successful (reached the goal)
-            if done:
-                success_count += 1
-            print(f"Evaluation Episode {episode + 1} completed.")
-
-        success_rate = (success_count / num_episodes) * 100
-        print(f"Success Rate: {success_rate:.2f}% over {num_episodes} episodes.")

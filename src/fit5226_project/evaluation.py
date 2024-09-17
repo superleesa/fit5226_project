@@ -12,20 +12,8 @@ from fit5226_project.actions import Action
 class Evaluation:
     def __init__(self, n=4) -> None:
         self.n = n
-        # self.agent = Agent(num_episode_per_intermediate_item=1000)
-        # item_grid_locations = generate_grid_location_list(self.n, self.n)
-        # all_items = [ItemObject(grid_location) for grid_location in item_grid_locations]
-        # self.q_learning_envs = [Environment(item = item, with_animation=False) for item in all_items]
-
         self.dqn_envs = Assignment2Environment(n=4, with_animation=False)
         self.dqn_agent = DQNAgent(with_log=True)
-    
-    # def run_train(self) -> None:
-    #     """
-    #     Trains the agent in the environment and returns the trained agent.
-    #     """
-    #     trainer = Trainer(self.agent, self.q_learning_envs)
-    #     trainer.train()
 
     def run_dqn_train(self):
         """
@@ -57,65 +45,6 @@ class Evaluation:
     @staticmethod
     def generate_grid_location_list(max_x: int, max_y) -> list[tuple[int, int]]:
         return [(i, j) for i in range(max_x) for j in range(max_y)]
-
-    # def visualize(self, num_of_vis: int = 5) -> None:
-    #     """
-    #     Visualize the path after trained
-    #     """
-    #     env_indices = random.sample(range(1, self.n*self.n), num_of_vis)
-    #     for index in env_indices:
-    #         env = self.q_learning_envs[index]
-    #         env.set_with_animation(True)
-    #         env.initialize_for_new_episode()
-
-    #         # Run the agent in the environment
-    #         current_state = env.get_state()
-    #         while not env.is_goal_state(current_state):
-    #             possible_actions = env.get_available_actions()
-    #             action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[index], is_training=False)
-    #             _, next_state = env.step(action)
-    #             current_state = next_state
-    
-    def q_learning_performance_test(self):
-        """
-        Conducts a performance test for q learning
-        """
-        num_episodes = 0
-        total_score = 0
-        for env in tqdm(self.q_learning_envs):
-            env.set_with_animation(False)
-            for agent_locaiton in tqdm(self.generate_grid_location_list(self.n, self.n)):
-                if agent_locaiton == env.item.location or agent_locaiton == env.goal_location:
-                    continue
-
-                env.initialize_for_new_episode(agent_location=agent_locaiton)
-                start_location = env.agent.location  # Get the start location of the agent
-                item_location = env.item.location  # Get intermediate location of the item
-
-                # Calculate shortest distance from start to item to goal
-                shortest_distance = (
-                    self.calculate_manhattan_distance(start_location, item_location)
-                    + 1 
-                    + self.calculate_manhattan_distance(item_location, env.goal_location)
-                )
-
-                current_state = env.get_state()
-                num_steps = 0
-                while not env.is_goal_state(current_state):
-                    possible_actions = env.get_available_actions()
-                    item_x, item_y = current_state.item_location
-                    action = self.agent.choose_action(possible_actions, current_state, self.agent.trained_qval_matrices[self.n*item_x+item_y], is_training=False)
-                    _, next_state = env.step(action)
-                    current_state = next_state
-                    num_steps += 1
-
-                # Calculate and accumulate the score
-                total_score += self.calculate_metrics_score(shortest_distance, num_steps)
-                
-                num_episodes += 1
-
-        # Return the average score across all tests
-        return total_score / num_episodes
     
     def state_to_array(self, state: State) -> np.ndarray:
         """
