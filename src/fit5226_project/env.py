@@ -56,7 +56,7 @@ class Environment:
             self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()]) 
         else:
             self.agent.location = agent_location
-        self.agent.has_item = False
+        self.agent.has_item = False if randint(0, 1) == 0 else True
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
