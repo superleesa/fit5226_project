@@ -30,6 +30,7 @@ class Tuning:
         non_item_penalty = trial.suggest_int('non_item_penalty', -200, -50)
         item_state_reward = trial.suggest_int('item_state_reward', 100, 200)
         goal_state_reward = trial.suggest_int('goal_state_reward', 300, 600)
+        num_episodes = trial.suggest_int('num_episodes', 100, 600)
         
         # Initialize Assignment2Environment
         tune_env = Assignment2Environment(
@@ -53,7 +54,7 @@ class Tuning:
         update_target_steps=update_target_steps
         )
 
-        num_episodes = 200 # define episodes
+        # num_episodes = 200 # define episodes
         tune_trainer = Trainer(tune_agent, tune_env)
 
         for _ in range(num_episodes):
