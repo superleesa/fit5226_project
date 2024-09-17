@@ -66,7 +66,7 @@ class DQNAgent:
         """
         self.target_model.load_state_dict(self.model.state_dict())
 
-    def select_action(self, state: np.ndarray, available_actions: List[Action]) -> tuple[Action, bool, np.ndarray]:
+    def select_action(self, state: np.ndarray, available_actions: List[Action], is_test: bool = False) -> tuple[Action, bool, np.ndarray]:
         """
         Select an action using an ε-greedy policy.
         
@@ -74,7 +74,7 @@ class DQNAgent:
         chosen_action, is_greedy, q values for all actions
         """
         qvals = self.get_qvals(state)
-        if random.random() < self.epsilon:
+        if not is_test and random.random() < self.epsilon:
             return random.choice(available_actions), False, qvals
         else:
             # Filter Q-values to only consider available actions
