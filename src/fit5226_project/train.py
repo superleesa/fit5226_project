@@ -27,7 +27,7 @@ class Trainer:
         self.log_step = log_step
 
         # Initialize the Plotter
-        self.plotter = Plotter(agent=self.agent, refresh_interval=5000, save_dir="./plots")
+        self.plotter = Plotter(save_dir="./plots")
 
 
     def train_one_episode(self, epoch_idx: int) -> None:
@@ -97,8 +97,8 @@ class Trainer:
             self.train_one_episode(episode)
 
             if episode % 10 == 0:
-                self.plotter.update_plot()
-                
+                self.plotter.update_plot(self.agent.logged_data)
+
             if episode % self.update_target_episodes == 0:
                 self.agent.update_target_network()
                 if self.with_log:
@@ -111,7 +111,7 @@ class Trainer:
         # Plot and save the rewards and epsilon decay after training is complete
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
-        self.plotter.update_plot()
+        self.plotter.update_plot(self.agent.logged_data)
 
     def validate(self) -> None:
         sample_env = Assignment2Environment(n=4, with_animation=True)
