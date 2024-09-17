@@ -128,6 +128,11 @@ class Trainer:
                 break
             prev_state = current_state
             current_state = next_state
+        
+        try:
+            plt.close(sample_env.fig)  # type: ignore
+        except AttributeError:
+            pass
 
     def validate(self, current_episode_index: int):
         calulated_scores = []
