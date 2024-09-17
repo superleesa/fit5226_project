@@ -24,10 +24,9 @@ class Tuning:
         epsilon = trial.suggest_categorical('epsilon', [0.2, 0.35, 0.45, 0.6])
         replay_memory_size = trial.suggest_int('replay_memory_size', 1000, 5000)
         batch_size = trial.suggest_categorical('batch_size', [16, 32, 64, 128, 256])
-        update_target_steps = trial.suggest_int('update_target_steps', 500, 1000)
         time_penalty = trial.suggest_int('time_penalty', -10, -1)
-        non_goal_penalty = trial.suggest_int('non_goal_penalty', -500, -100)
-        non_item_penalty = trial.suggest_int('non_item_penalty', -200, -50)
+        goal_no_item_penalty = trial.suggest_int('goal_no_item_penalty', -500, -100)
+        item_revisit_penalty = trial.suggest_int('item_revisit_penalty', -200, -50)
         item_state_reward = trial.suggest_int('item_state_reward', 100, 200)
         goal_state_reward = trial.suggest_int('goal_state_reward', 300, 600)
         num_episodes = trial.suggest_int('num_episodes', 100, 600)
@@ -36,8 +35,8 @@ class Tuning:
         tune_env = Assignment2Environment(
         n=4,  # Grid size
         time_penalty=time_penalty,
-        non_goal_penalty=non_goal_penalty,
-        non_item_penalty=non_item_penalty,
+        goal_no_item_penalty=goal_no_item_penalty,
+        item_revisit_penalty=item_revisit_penalty,
         item_state_reward=item_state_reward,
         goal_state_reward=goal_state_reward,
         direction_reward_multiplier=1,
@@ -51,7 +50,6 @@ class Tuning:
         epsilon=epsilon,
         replay_memory_size=replay_memory_size,
         batch_size=batch_size,
-        update_target_steps=update_target_steps
         )
 
         # num_episodes = 200 # define episodes
@@ -76,10 +74,11 @@ class Tuning:
                 available_actions = tune_env.get_available_actions(current_state)
 
                 # Select an action using the agent's ε-greedy policy
-                action = tune_agent.select_action(state_array, available_actions)
+                action, is_greedy, all_qvals = tune_agent.select_action(state_array, available_actions)
 
                 # Execute the action in the current sub-environment, receive reward and next state
-                reward, next_state = tune_env.step(action)
+                reward, next_state = tune_env.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
+
 
                 # Add the reward to the total reward for this episode
                 total_reward += reward
@@ -88,14 +87,16 @@ class Tuning:
                 next_state_array = tune_trainer.state_to_array(next_state)
 
                 # Store experience in the agent's replay memory
-                tune_agent.remember((state_array, action.value, reward, next_state_array, tune_env.is_goal_state(next_state)))
+                tune_agent.replay_buffer.remember((state_array, action.value, reward, next_state_array, tune_env.is_goal_state(next_state)))
 
                 # Learn from experiences using experience replay
                 tune_agent.replay()
 
                 # Move to the next state
                 current_state = next_state
-
+            
+            # decrease exploration over time
+            tune_agent.epsilon = max(tune_agent.epsilon_min, tune_agent.epsilon * tune_agent.epsilon_decay)
             # Store total reward of the episode
             tune_trainer.episode_rewards.append(total_reward)
             
