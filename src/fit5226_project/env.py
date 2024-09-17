@@ -53,7 +53,7 @@ class Environment:
 
     def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None) -> None:
         if agent_location is None:
-            self.agent.set_location_randomly(self.n, self.n, [self.item.get_location()]) 
+            self.agent.set_location_randomly(self.n, self.n,) 
         else:
             self.agent.location = agent_location
         self.agent.has_item = False if randint(0, 1) == 0 else True
