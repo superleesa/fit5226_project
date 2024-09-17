@@ -1,6 +1,7 @@
 import random
 import numpy as np
 from tqdm import tqdm
+import time
 
 from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
@@ -24,26 +25,16 @@ class Evaluation:
         self.dqn_agent.save_state("trained_dqn_agent_2.pth")
 
     def load_trained_dqn(self, path: str):
+        """
+        Load the saved DQN
+        """
         self.dqn_agent.load_state(path)
-
-    @staticmethod
-    def calculate_manhattan_distance(start_location: tuple[int, int], goal_location: tuple[int, int]) -> int:
-        """
-        Calculates the Manhattan distance between two points.
-        """
-        start_x, start_y = start_location
-        goal_x, goal_y = goal_location
-        return abs(start_x - goal_x) + abs(start_y - goal_y)
-
-    @staticmethod
-    def calculate_metrics_score(shortest_distance: int, distance: int) -> float:
-        """
-        Calculates the proportion of the Q-learning distance to the shortest distance.
-        """
-        return shortest_distance / distance
     
     @staticmethod
     def generate_grid_location_list(max_x: int, max_y) -> list[tuple[int, int]]:
+        """
+        Generate the grid location list for all possible cases
+        """
         return [(i, j) for i in range(max_x) for j in range(max_y)]
     
     def state_to_array(self, state: State) -> np.ndarray:
@@ -91,15 +82,11 @@ class Evaluation:
 
                 # Initialize episode with a given agent location
                 env.initialize_for_new_episode(agent_location=agent_location)
-                start_location = env.agent.location
-                item_location = env.item.location
 
-                # Calculate the shortest distance from start to item to goal
-                shortest_distance = (
-                    self.calculate_manhattan_distance(start_location, item_location)
-                    + 1  # For picking up the item
-                    + self.calculate_manhattan_distance(item_location, env.goal_location)
-                )
+                # Get the start, item, and goal location
+                start_location = self.dqn_envs.current_sub_environment.agent.get_location()
+                item_location = self.dqn_envs.current_sub_environment.item.get_location()
+                goal_location = self.dqn_envs.current_sub_environment.goal_location
 
                 # Start testing the agent
                 current_state = env.get_state()
@@ -120,85 +107,43 @@ class Evaluation:
     
     def visualize_dqn(self, num_of_vis: int = 5) -> None:
         """
-        Visualize the path after trained
+        Visualize the path after trained for given times
         """
         for _ in (0, num_of_vis):
-            self.dqn_envs.set_with_animation(True)
-            self.dqn_envs.initialize_for_new_episode((1,3))
+            self.dqn_envs.set_with_animation(True) # Set the animation True
+            self.dqn_envs.initialize_for_new_episode()
+            self.dqn_envs.current_sub_environment.agent.has_item = False # Assumes that agent starts without item
 
-            # Run the agent in the environment
             current_state = self.dqn_envs.get_state()
-            print(current_state)
-            while not self.dqn_envs.is_goal_state(current_state):
-                state_array = self.state_to_array(current_state)
-                print(state_array)
-                qvals = self.dqn_agent.get_qvals(state_array)
-                print(qvals)
-                action = Action(np.argmax(qvals))
-                print(action)
-
-                # Execute the action in the environment
-                _, next_state = self.dqn_envs.step(action)
-                print(next_state)
-                current_state = next_state
-
-
-
-                # possible_actions = self.dqn_envs.current_sub_environment.get_available_actions()
-                # action = self.agent.select_action(current_state, is_training=False)
-                # _, next_state = self.dqn_envs.current_sub_environment.step(action)
-                # current_state = next_state
-    
-
-    # def evaluate(self, num_episodes: int) -> None:
-    #     """
-    #     Evaluate the agent's performance over a specified number of episodes.
-    #     """
-    #     success_count = 0
-
-    #     for episode in range(num_episodes):
-    #         print(f"Starting Evaluation Episode {episode + 1}")
-    #         self.environment.initialize_for_new_episode()
-    #         # Ensure reference is updated to the new environment for each episode
-    #         self.current_sub_environment = self.environment.current_sub_environment
-
-    #         current_state = self.current_sub_environment.get_state()  # Use current sub-environment's state
-    #         done = False
-
-    #         while not done:
-    #             # Convert the current state to a numpy array for input to the neural network
-    #             state_array = self.state_to_array(current_state)
-
-    #             # Select the best action (exploitation only, no exploration)
-    #             qvals = self.agent.get_qvals(state_array)
-    #             action = Action(np.argmax(qvals))
-
-    #             # Execute the action in the environment
-    #             reward, next_state = self.current_sub_environment.step(action)
-
-    #             # Check if the next state is a goal state
-    #             done = self.current_sub_environment.is_goal_state(next_state)
-    #             current_state = next_state
-
-    #         # Check if the episode was successful (reached the goal)
-    #         if done:
-    #             success_count += 1
-    #         print(f"Evaluation Episode {episode + 1} completed.")
-
-    #     success_rate = (success_count / num_episodes) * 100
-    #     print(f"Success Rate: {success_rate:.2f}% over {num_episodes} episodes.")
+            start_time = time.time() # Keep track time
+            done = False
+            
+            while not done:
+                # If it takes more than 20 seconds to reach the goal, break the loop
+                if time.time() - start_time > 20:
+                    break
+                state_array = self.state_to_array(current_state) # get the states in array format
+                available_actions = self.dqn_envs.get_available_actions(current_state) # get available actions
+                action, is_greedy, all_qvals = self.dqn_agent.select_action(state_array, available_actions, is_test=True)
+                reward, next_state = self.dqn_envs.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals) # get next state
+                done = self.dqn_envs.is_goal_state(next_state)
+                current_state = next_state # update current state
 
 if __name__ == "__main__":
     # DQN
     evl = Evaluation()
+
+    # Training DQN
     evl.run_dqn_train()
+
+    # Load DQN model 
     # evl.load_trained_dqn('/Users/sho/Monash/FIT5226/project/trained_dqn_agent_2.pth')
 
     # Conduct the performance test
     # average_score = evl.dqn_performance_test()
     # print(f"Average performance score (1 is the best): {average_score:.4f}")
 
-    # visualize randomly the environments and show the steps of the agent
+    # Visualize randomly the environments and show the steps of the agent
     # evl.visualize_dqn()
 
 
