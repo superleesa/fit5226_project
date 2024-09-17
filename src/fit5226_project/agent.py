@@ -7,10 +7,6 @@ import numpy as np
 import torch
 
 from fit5226_project.actions import Action
-
-
-# import mlflow
-from fit5226_project.tracker import mlflow_manager
 from fit5226_project.replay_buffers import PrioritizedExperienceBuffer
 
 class DQNAgent:
@@ -173,14 +169,6 @@ class DQNAgent:
             self.logged_data['max_target_qval'].append(max_target_qval)
             self.logged_data['loss'].append(loss.item())
             self.logged_data['steps'].append(self.steps)
-
-
-        if self.with_log and self.steps % self.loss_log_interval == 0:
-            with torch.no_grad():
-                mlflow_manager.log_avg_predicted_qval(qvals.mean().item(), step=self.steps)
-                mlflow_manager.log_avg_target_qval(target_tensors.mean().item(), step=self.steps)
-                mlflow_manager.log_max_predicted_qval(qvals.max().item(), step=self.steps)
-                mlflow_manager.log_max_target_qval(target_tensors.max().item(), step=self.steps)
         
         with torch.no_grad():
             self.replay_buffer.update_priorities(losses.detach().numpy())  # TODO: maybe using l1 better (at least original paper uses l1)
@@ -209,9 +197,6 @@ class DQNAgent:
         self.steps += 1
         # Train the model
         loss = self.train_one_step(states, actions, targets)
-        
-        if self.with_log and self.steps % self.loss_log_interval == 0:
-            mlflow_manager.log_loss(loss, step=self.steps)
 
         # TODO: plot loss
 

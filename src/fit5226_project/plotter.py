@@ -25,6 +25,7 @@ class Plotter:
         Update the plot with new data.
         """
         # Fetch the latest metrics from the agent
+        print("comes hereaaaaaaaaaaaaaa")
         data = logged_data
         print(data)
         
