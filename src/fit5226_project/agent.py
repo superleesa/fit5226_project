@@ -86,7 +86,8 @@ class DQNAgent:
         Get Q-values for a given state from the prediction network.
         """
         state_tensor = torch.from_numpy(state).float().unsqueeze(0)  # Convert to tensor
-        qvals_tensor = self.model(state_tensor)
+        with torch.no_grad():
+            qvals_tensor = self.model(state_tensor)
         return qvals_tensor.detach().numpy()[0]
 
     def get_maxQ(self, state: np.ndarray) -> float:
@@ -94,7 +95,8 @@ class DQNAgent:
         Get the maximum Q-value for a given state from the target network.
         """
         state_tensor = torch.from_numpy(state).float().unsqueeze(0)  # Convert to tensor
-        max_qval_tensor = torch.max(self.target_model(state_tensor))
+        with torch.no_grad():
+            max_qval_tensor = torch.max(self.target_model(state_tensor))
         return max_qval_tensor.item()
 
     def train_one_step(self, states: List[np.ndarray], actions: List[int], targets: List[float]) -> float:
