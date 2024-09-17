@@ -19,9 +19,9 @@ class DQNAgent:
         statespace_size: int = 11,
         action_space_size: int = len(Action),
         alpha: float = 0.0005,
-        discount_rate: float = 0.999,
+        discount_rate: float = 0.99,
         epsilon: float = 1,
-        epsilon_decay: float = 0.999,
+        epsilon_decay: float = 0.99997,
         epsilon_min: float = 0.007,
         replay_memory_size: int = 10000,
         batch_size: int = 128,
@@ -188,7 +188,7 @@ class DQNAgent:
 
         # TODO: plot loss
 
-    def save_state(self, filepath):
+    def save_state(self, filepath: Path | str):
         """Save the entire agent state, including model weights and hyperparameters."""
         torch.save({
             'model_state_dict': self.model.state_dict(),  # Model weights
