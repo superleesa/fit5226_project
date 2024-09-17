@@ -1,3 +1,6 @@
 Ds.store
 __pycache__/
 src/fit5226_project.egg-info/
+*.pth
+mlruns/
+checkpoints/
