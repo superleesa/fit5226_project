@@ -42,6 +42,8 @@ class DQNAgent:
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.alpha)
         self.loss_fn = torch.nn.MSELoss()
         self.steps = 0  # to track when to update target network
+        self.tau = 0.005
+        
 
     def prepare_torch(self, statespace_size: int):
         """
@@ -64,7 +66,12 @@ class DQNAgent:
         """
         Copy weights from the prediction network to the target network.
         """
-        self.target_model.load_state_dict(self.model.state_dict())
+        # self.target_model = deepcopy(self.model)
+        target_net_state_dict = self.target_model.state_dict()
+        policy_net_state_dict = self.model.state_dict()
+        for key in policy_net_state_dict:
+            target_net_state_dict[key] = policy_net_state_dict[key]*self.tau + target_net_state_dict[key]*(1-self.tau)
+        self.target_model.load_state_dict(target_net_state_dict)
 
     def select_action(self, state: np.ndarray, available_actions: List[Action], is_test: bool = False) -> tuple[Action, bool, np.ndarray]:
         """
