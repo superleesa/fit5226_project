@@ -8,6 +8,7 @@ from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State
 from fit5226_project.actions import Action
 from fit5226_project.tracker import mlflow_manager
+from fit5226_project.plotter import Plotter
 
 class Trainer:
     def __init__(self, agent: DQNAgent, environment: Assignment2Environment, with_log: bool = False, log_step: int = 100, update_target_episodes: int = 20,) -> None:
@@ -24,6 +25,9 @@ class Trainer:
         self.with_log = with_log
         self.global_step = 0
         self.log_step = log_step
+
+        # Initialize the Plotter
+        self.plotter = Plotter(agent=self.agent, refresh_interval=5000, save_dir="./plots")
 
 
     def train_one_episode(self, epoch_idx: int) -> None:
@@ -87,9 +91,14 @@ class Trainer:
         Train the agent across multiple episodes.
         """
         num_nn_passes = 0
+
         for episode in range(1, num_episodes+1):
             print(f"Starting Episode {episode + 1}")
             self.train_one_episode(episode)
+
+            if episode % 10 == 0:
+                self.plotter.update_plot()
+                
             if episode % self.update_target_episodes == 0:
                 self.agent.update_target_network()
                 if self.with_log:
@@ -102,6 +111,7 @@ class Trainer:
         # Plot and save the rewards and epsilon decay after training is complete
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
+        self.plotter.update_plot()
 
     def validate(self) -> None:
         sample_env = Assignment2Environment(n=4, with_animation=True)
