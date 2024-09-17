@@ -142,24 +142,14 @@ class DQNAgent:
             
         return loss.item()
 
-    def remember(self, experience: Tuple[np.ndarray, int, float, np.ndarray, bool]) -> None:
-        """
-        Store an experience in the replay memory.
-        """
-        if len(self.replay_memory) >= self.replay_memory_size:
-            self.replay_memory.pop(0)  # Remove the oldest experience
-        self.replay_memory.append(experience)
-
     def replay(self) -> None:
         """
         Train the model using experience replay.
         """
-        if len(self.replay_memory) < self.batch_size:
-            return  # Not enough experiences to sample from
-
-        # Sample a minibatch from the replay memory
-        minibatch = random.sample(self.replay_memory, self.batch_size)
-        states, actions, rewards, next_states, dones = zip(*minibatch)
+        if len(self.replay_buffer.buffer) < self.min_replay_memory_size:
+            return
+        
+        states, actions, rewards, next_states, dones = self.replay_buffer.sample_batch(self.batch_size)
 
         # Compute targets
         targets = []
