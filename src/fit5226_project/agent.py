@@ -106,6 +106,17 @@ class DQNAgent:
         with torch.no_grad():
             max_qval_tensor = torch.max(self.target_model(state_tensor))
         return max_qval_tensor.item()
+    
+    def get_double_q(self, state: np.ndarray) -> float:
+        """
+        Calculate the Double DQN target value for a given state.
+        """
+        state_tensor = torch.from_numpy(state).float().unsqueeze(0)
+        with torch.no_grad():
+            best_action_index = torch.argmax(self.model(state_tensor)[0]).item()
+            max_qval = self.target_model(state_tensor)[0][best_action_index].item()
+            
+        return max_qval
 
     def train_one_step(self, states: List[np.ndarray], actions: List[int], targets: List[float]) -> float:
         """
@@ -154,7 +165,8 @@ class DQNAgent:
             if dones[i]:
                 targets.append(rewards[i])
             else:
-                max_future_q = self.get_maxQ(next_states[i])
+                # max_future_q = self.get_maxQ(next_states[i])
+                max_future_q = self.get_double_q(next_states[i])
                 targets.append(rewards[i] + self.discount_rate * max_future_q)
 
         # Train the model
