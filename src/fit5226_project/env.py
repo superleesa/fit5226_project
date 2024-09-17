@@ -13,7 +13,7 @@ from fit5226_project.state import State, Assignment2State
 
 DEFAULT_TIME_PENALTY = -1
 GOAL_STATE_REWARD = 200
-DEFAULT_ITEM_REWARD = 100
+DEFAULT_ITEM_REWARD = 300
 DEFAULT_ITEM_REVISIT_PENALTY = -200
 DEFAULT_GOAL_NO_ITEM_PENALTY = -300
 
@@ -130,6 +130,8 @@ class Environment:
             reward += self.goal_state_reward
 
         # Reward for collecting the item
+        if not prev_state.has_item and current_state.agent_location == current_state.item_location:
+            reward += self.item_state_reward
         if action == Action.COLLECT and prev_state.agent_location == current_state.item_location and not prev_state.has_item:
             reward += self.item_state_reward
 
