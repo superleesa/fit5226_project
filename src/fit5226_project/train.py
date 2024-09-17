@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import mlflow
+import time
 
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State
 from fit5226_project.actions import Action
-import numpy as np
-import matplotlib.pyplot as plt
+from fit5226_project.tracker import mlflow_manager
 
 class Trainer:
     def __init__(self, agent: DQNAgent, environment: Assignment2Environment, with_log: bool = False, log_step: int = 100, update_target_episodes: int = 20,) -> None:
@@ -19,9 +20,13 @@ class Trainer:
         self.update_target_episodes = update_target_episodes
         
         self.episode_rewards: list[float] = []
+        
+        self.with_log = with_log
+        self.global_step = 0
+        self.log_step = log_step
 
 
-    def train_one_episode(self) -> None:
+    def train_one_episode(self, epoch_idx: int) -> None:
         """
         Conducts training for a single episode.
         """
@@ -31,15 +36,22 @@ class Trainer:
         done = False
         total_reward = 0.0
         step_count = 0
+        current_log_cycle_reward_list = []
 
         while not done:
             state_array = self.state_to_array(current_state)
             available_actions = self.environment.get_available_actions(current_state)
             action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions)
             reward, next_state = self.environment.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
+            current_log_cycle_reward_list.append(reward)
             # print(f"S_t={current_state}, A={action.name}, R={reward}, S_t+1={next_state}")
-            print(f"R={reward}")
-            print("========================")
+            if self.with_log and self.global_step % self.log_step == 0:
+                # print(f"R={reward}")
+                # print("========================")
+                running_reward = sum(current_log_cycle_reward_list) / len(current_log_cycle_reward_list)
+                # mlflow.log_metric("reward", running_reward, step=self.global_step)
+                mlflow_manager.log_reward(running_reward, step=self.global_step)
+                current_log_cycle_reward_list.clear()
             next_state_array = self.state_to_array(next_state)
             done = self.environment.is_goal_state(next_state)
             total_reward += reward
@@ -49,10 +61,12 @@ class Trainer:
             
             current_state = next_state
             step_count += 1
+            self.global_step += 1
 
         # decrease exploration over time
         self.agent.epsilon = max(self.agent.epsilon_min, self.agent.epsilon * self.agent.epsilon_decay)
         self.episode_rewards.append(total_reward)
+        mlflow_manager.log_episode_wise_reward(total_reward/step_count, episode_idx=epoch_idx)
 
     def state_to_array(self, state: Assignment2State) -> np.ndarray:
         """
@@ -75,8 +89,11 @@ class Trainer:
         num_nn_passes = 0
         for episode in range(1, num_episodes+1):
             print(f"Starting Episode {episode + 1}")
+            self.train_one_episode(episode)
             if episode % self.update_target_episodes == 0:
                 self.agent.update_target_network()
+                if self.with_log:
+                    print("Target network updated")
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
             if self.agent.steps != num_nn_passes:
                 self.validate()

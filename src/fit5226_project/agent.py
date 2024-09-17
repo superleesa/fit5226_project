@@ -6,6 +6,12 @@ from fit5226_project.state import State, Assignment2State
 import torch
 import copy
 from typing import List, Tuple
+import sys
+from copy import deepcopy
+
+# import mlflow
+from fit5226_project.tracker import mlflow_manager
+from fit5226_project.replay_buffers import PrioritizedExperienceBuffer
 
 class DQNAgent:
     def __init__(
@@ -173,13 +179,14 @@ class DQNAgent:
                 max_future_q = self.get_double_q(next_states[i])
                 targets.append(rewards[i] + self.discount_rate * max_future_q)
 
+        self.steps += 1
         # Train the model
         loss = self.train_one_step(states, actions, targets)
         
-        # Update target network periodically
-        self.steps += 1
-        if self.steps % self.update_target_steps == 0:
-            self.update_target_network()
+        if self.with_log and self.steps % self.loss_log_interval == 0:
+            mlflow_manager.log_loss(loss, step=self.steps)
+
+        # TODO: plot loss
 
     def save_state(self, filepath):
         """Save the entire agent state, including model weights and hyperparameters."""

@@ -5,7 +5,7 @@ from tqdm import tqdm
 # from fit5226_project.agent import Agent, Trainer, ItemObject, generate_grid_location_list, DQNAgent
 from fit5226_project.agent import DQNAgent
 from fit5226_project.train import Trainer
-from fit5226_project.env import Environment, Assignment2Environment
+from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State, State
 from fit5226_project.actions import Action
 
@@ -18,7 +18,7 @@ class Evaluation:
         # self.q_learning_envs = [Environment(item = item, with_animation=False) for item in all_items]
 
         self.dqn_envs = Assignment2Environment(n=4, with_animation=False)
-        self.dqn_agent = DQNAgent()
+        self.dqn_agent = DQNAgent(with_log=True)
     
     # def run_train(self) -> None:
     #     """
@@ -31,7 +31,7 @@ class Evaluation:
         """
         Trains DQN agent in the environment and save the states.
         """
-        trainer = Trainer(self.dqn_agent, self.dqn_envs)
+        trainer = Trainer(self.dqn_agent, self.dqn_envs, with_log=True)
         trainer.train(num_episodes=110)
         self.dqn_agent.save_state("trained_dqn_agent_2.pth")
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     # print(f"Average performance score (1 is the best): {average_score:.4f}")
 
     # visualize randomly the environments and show the steps of the agent
-    evl.visualize_dqn()
+    # evl.visualize_dqn()
 
 
     # Evaluate the trained model
