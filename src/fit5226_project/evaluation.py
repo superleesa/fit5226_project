@@ -2,6 +2,7 @@ import random
 import numpy as np
 from tqdm import tqdm
 import time
+import os
 
 from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
@@ -22,7 +23,7 @@ class Evaluation:
         """
         trainer = Trainer(self.dqn_agent, self.dqn_envs, with_log=True)
         trainer.train(num_episodes=110)
-        self.dqn_agent.save_state("trained_dqn_agent_2.pth")
+        self.dqn_agent.save_state("trained_dqn.pth")
 
     def load_trained_dqn(self, path: str):
         """
@@ -68,42 +69,54 @@ class Evaluation:
     
     def dqn_performance_test(self):
         """
-        Conducts a performance test for DQN.
+        Conducts a performance test for DQN. The maximum of the score is 1. 
         """
         num_episodes = 0
         total_score = 0
 
         # Loop over all environments in DQN environment
-        for env in tqdm(self.dqn_envs.environments):
+        for i, env in tqdm(enumerate(self.dqn_envs.environments)):
             env.set_with_animation(False)
             for agent_location in tqdm(self.generate_grid_location_list(self.n, self.n)):
+                self.dqn_envs.current_sub_environment.agent.has_item = False # metric assumes that agent starts without item
+                # Ensure agent location is not same place with item and goal
                 if agent_location == env.item.location or agent_location == env.goal_location:
                     continue
 
                 # Initialize episode with a given agent location
-                env.initialize_for_new_episode(agent_location=agent_location)
+                self.dqn_envs.initialize_for_new_episode(agent_location=agent_location, index=i)
 
-                # Get the start, item, and goal location
+                # Get start, item, and goal location to calcurate distance
                 start_location = self.dqn_envs.current_sub_environment.agent.get_location()
                 item_location = self.dqn_envs.current_sub_environment.item.get_location()
                 goal_location = self.dqn_envs.current_sub_environment.goal_location
+                
+                current_state = self.dqn_envs.get_state() # get current state
+                start_time = time.time() # to keeps track time
+                predicted_steps = 0 # count the number of actual steps taken
+                done = False # for one environment
+                is_break = False # to keep track the break
 
-                # Start testing the agent
-                current_state = env.get_state()
-                num_steps = 0
-                while not env.is_goal_state(current_state):
-                    action = self.agent.select_action(current_state)
-                    # Take a step in the environment and observe the next state and if goal is reached
-                    _, next_state = env.step(action)
-                    current_state = next_state
-                    num_steps += 1
+                while not done:
+                    # Break if it takes more than 20 seconds
+                    if time.time() - start_time > 20:
+                        is_break = True
+                        break
+                    state_array = self.state_to_array(current_state) # get the states in array format
+                    available_actions = self.dqn_envs.get_available_actions(current_state) # get available actions
+                    action, is_greedy, all_qvals = self.dqn_agent.select_action(state_array, available_actions, is_test=True)
+                    reward, next_state = self.dqn_envs.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals) # get next state
+                    done = self.dqn_envs.is_goal_state(next_state) # Check if it is goal position
+                    current_state = next_state # update current state
+                    predicted_steps += 1
 
-                # Calculate and accumulate the score
-                total_score += self.calculate_metrics_score(shortest_distance, num_steps)
-                num_episodes += 1
-
-        # Return the average score across all tests
-        return total_score / num_episodes
+                if not is_break:
+                    # calculate the metrics score
+                    total_score += calculate_metrics_score(predicted_steps, start_location, item_location, goal_location)
+                    num_episodes += 1 # increase the episode
+            
+            # Return the average score across all possible tests
+            return total_score / num_episodes
     
     def visualize_dqn(self, num_of_vis: int = 5) -> None:
         """
@@ -126,7 +139,7 @@ class Evaluation:
                 available_actions = self.dqn_envs.get_available_actions(current_state) # get available actions
                 action, is_greedy, all_qvals = self.dqn_agent.select_action(state_array, available_actions, is_test=True)
                 reward, next_state = self.dqn_envs.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals) # get next state
-                done = self.dqn_envs.is_goal_state(next_state)
+                done = self.dqn_envs.is_goal_state(next_state) # Check if it is goal position
                 current_state = next_state # update current state
 
 if __name__ == "__main__":
@@ -134,17 +147,16 @@ if __name__ == "__main__":
     evl = Evaluation()
 
     # Training DQN
-    evl.run_dqn_train()
+    # evl.run_dqn_train()
 
     # Load DQN model 
-    # evl.load_trained_dqn('/Users/sho/Monash/FIT5226/project/trained_dqn_agent_2.pth')
+    current_path = os.getcwd() # get current path
+    saved_path = current_path+'/trained_dqn.pth'
+    evl.load_trained_dqn(saved_path)
 
     # Conduct the performance test
-    # average_score = evl.dqn_performance_test()
-    # print(f"Average performance score (1 is the best): {average_score:.4f}")
+    average_score = evl.dqn_performance_test()
+    print(f"Average performance score (1 is the best): {average_score:.4f}")
 
     # Visualize randomly the environments and show the steps of the agent
-    # evl.visualize_dqn()
-
-
-
+    evl.visualize_dqn()
