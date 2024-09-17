@@ -198,7 +198,7 @@ class DQNAgent:
             'epsilon_decay': self.epsilon_decay,  # Epsilon decay rate
             'epsilon_min': self.epsilon_min,  # Minimum epsilon
             'discount_rate': self.discount_rate,  # Discount factor
-            'replay_memory': self.replay_memory,  # Replay memory
+            'replay_buffer': self.replay_buffer,  # replay_buffer
             'steps': self.steps,  # Steps to update target network
             'random_state': random.getstate(),  # Python random state
             'numpy_random_state': np.random.get_state(),  # Numpy random state
@@ -214,7 +214,7 @@ class DQNAgent:
         self.epsilon_decay = checkpoint['epsilon_decay']  # Restore epsilon decay rate
         self.epsilon_min = checkpoint['epsilon_min']  # Restore minimum epsilon
         self.discount_rate = checkpoint['discount_rate']  # Restore discount factor
-        self.replay_memory = checkpoint['replay_memory']  # Restore replay memory
+        self.replay_buffer = checkpoint['replay_buffer']  # Restore replay_buffer
         self.steps = checkpoint['steps']  # Restore steps
         random.setstate(checkpoint['random_state'])  # Restore Python random state
         np.random.set_state(checkpoint['numpy_random_state'])  # Restore Numpy random state
