@@ -29,6 +29,7 @@ class Environment:
         goal_state_reward: int | float = GOAL_STATE_REWARD,
         item_revisit_penalty: int | float = DEFAULT_ITEM_REVISIT_PENALTY,
         goal_no_item_penalty: int | float = DEFAULT_GOAL_NO_ITEM_PENALTY,
+        has_item_prob: float = 0.3,
         with_animation: bool = True,
     ) -> None:
         self.n = n
@@ -38,6 +39,7 @@ class Environment:
         self.goal_state_reward = goal_state_reward
         self.item_revisit_penalty = item_revisit_penalty
         self.goal_no_item_penalty = goal_no_item_penalty
+        self.has_item_prob = has_item_prob
 
         self.item = ItemObject() if item is None else item
         self.agent = AgentObject()
@@ -62,7 +64,7 @@ class Environment:
             self.agent.set_location_randomly(self.n, self.n,) 
         else:
             self.agent.location = agent_location
-        self.agent.has_item = False if randint(0, 1) == 0 else True
+        self.agent.has_item = True if random() < self.has_item_prob else False
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
