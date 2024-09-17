@@ -1,7 +1,6 @@
 from __future__ import annotations
 from abc import ABC
-from random import randint, choice
-from typing import cast
+from random import randint, choice, random
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -354,7 +353,7 @@ class Assignment2Environment:
                         )
                         self.environments.append(environment)
         
-        self.environments = [self.environments[10]]
+        # self.environments = [self.environments[10]]
                 
         
         self.direction_reward_multiplier = direction_reward_multiplier
