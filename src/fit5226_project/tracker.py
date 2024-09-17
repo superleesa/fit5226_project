@@ -32,6 +32,9 @@ class MLFlowManager:
     def log_max_predicted_qval(self, max_qval: float, step: int):
         mlflow.log_metric("max_predicted_qval", max_qval, step=step)
     
+    def log_validation_score(self, validation_score: float, step: int):
+        mlflow.log_metric("validation_score", validation_score, step=step)
+    
     def end_run(self):
         mlflow.end_run()
 

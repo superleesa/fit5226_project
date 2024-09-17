@@ -1,7 +1,6 @@
 from __future__ import annotations
 from abc import ABC
-from random import randint, choice
-from typing import cast
+from random import randint, choice, random
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,6 +28,7 @@ class Environment:
         goal_state_reward: int | float = GOAL_STATE_REWARD,
         item_revisit_penalty: int | float = DEFAULT_ITEM_REVISIT_PENALTY,
         goal_no_item_penalty: int | float = DEFAULT_GOAL_NO_ITEM_PENALTY,
+        has_item_prob: float = 0.3,
         with_animation: bool = True,
     ) -> None:
         self.n = n
@@ -38,6 +38,7 @@ class Environment:
         self.goal_state_reward = goal_state_reward
         self.item_revisit_penalty = item_revisit_penalty
         self.goal_no_item_penalty = goal_no_item_penalty
+        self.has_item_prob = has_item_prob
 
         self.item = ItemObject() if item is None else item
         self.agent = AgentObject()
@@ -62,7 +63,7 @@ class Environment:
             self.agent.set_location_randomly(self.n, self.n,) 
         else:
             self.agent.location = agent_location
-        self.agent.has_item = False if randint(0, 1) == 0 else True
+        self.agent.has_item = True if random() < self.has_item_prob else False
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
@@ -352,7 +353,7 @@ class Assignment2Environment:
                         )
                         self.environments.append(environment)
         
-        self.environments = [self.environments[10]]
+        # self.environments = [self.environments[10]]
                 
         
         self.direction_reward_multiplier = direction_reward_multiplier
@@ -363,8 +364,8 @@ class Assignment2Environment:
     def get_random_sub_environment(self) -> Environment:
         return choice(self.environments)
     
-    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None, index: int | None = None) -> None:
-        self.current_sub_environment = self.get_random_sub_environment() if index is None else self.environments[index]
+    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None, env_index: int | None = None) -> None:
+        self.current_sub_environment = self.get_random_sub_environment() if env_index is None else self.environments[env_index]
         self.current_sub_environment.initialize_for_new_episode(agent_location)
         
         self.state = Assignment2State(
