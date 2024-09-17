@@ -118,27 +118,26 @@ class Environment:
         """
         Calculate the reward based on the agent's actions and state transitions.
         """
-
+        reward = self.time_penalty
+        
         # Large penalty for reaching the goal without the item
         if current_state.agent_location == self.goal_location and not current_state.has_item:
-            return self.goal_no_item_penalty
+            reward += self.goal_no_item_penalty
+            return reward
 
         # Large reward for reaching the goal with the item
         if self.is_goal_state(current_state):
-            return self.goal_state_reward
+            reward += self.goal_state_reward
 
         # Reward for collecting the item
         if action == Action.COLLECT and prev_state.agent_location == current_state.item_location and not prev_state.has_item:
-            return self.item_state_reward
+            reward += self.item_state_reward
 
-        # Penalize if attempting to collect when not at item location or already has item
+        # Penalty for revisiting item location
         if action == Action.COLLECT and (prev_state.has_item or prev_state.agent_location != current_state.item_location):
-            return self.item_revisit_penalty
+            reward += self.item_revisit_penalty
         if prev_state.has_item and current_state.agent_location == current_state.item_location:
-            return self.item_revisit_penalty
-
-        reward = self.time_penalty
-
+            reward += self.item_revisit_penalty
 
         return reward
 
