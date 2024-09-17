@@ -13,33 +13,45 @@ class DQNAgent:
         statespace_size: int = 11,
         action_space_size: int = len(Action),
         alpha: float = 0.0005,
-        discount_rate: float = 0.95,
-        epsilon: float = 0.4,
-        epsilon_decay: float = 0.97,
-        epsilon_min: float = 0.1,
+        discount_rate: float = 0.999,
+        epsilon: float = 1,
+        epsilon_decay: float = 0.999,
+        epsilon_min: float = 0.007,
         replay_memory_size: int = 10000,
-        batch_size: int = 30,
-        update_target_steps: int = 25,
+        batch_size: int = 128,
+        min_replay_memory_size: int = 1000,
+        tau: float = 0.05,
+        with_log: bool = False,
+        loss_log_interval: int = 100,
     ) -> None:
         """
         Initialize the DQN Agent
         """
         self.alpha = alpha  # learning rate for optimizer
-        self.discount_rate = discount_rate  # discount factor for future rewards
+        self.discount_rate = discount_rate
         self.epsilon = epsilon  # exploration rate
         self.epsilon_decay = epsilon_decay  # rate at which exploration rate decays
+        self.epsilon_min = epsilon_min
+        
+        self.batch_size = batch_size
+        self.action_space_size = action_space_size
+        self.min_replay_memory_size = min_replay_memory_size
+        
         self.replay_buffer = PrioritizedExperienceBuffer(max_size=replay_memory_size)
         
         # Initialize DQN models
         self.model = self.prepare_torch(statespace_size)  # prediction model
-        self.target_model = copy.deepcopy(self.model)  # target model
+        self.target_model = deepcopy(self.model)  # target model
 
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.alpha, amsgrad=True)
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=1000, gamma=0.9)
         self.loss_fn = torch.nn.MSELoss(reduction='none')
-        self.steps = 0  # to track when to update target network
-        self.tau = 0.005
+        self.steps = 0
         
+        self.tau = tau  # for soft update of target parameters
+        
+        self.with_log = with_log
+        self.loss_log_interval = loss_log_interval
 
     def prepare_torch(self, statespace_size: int):
         """
