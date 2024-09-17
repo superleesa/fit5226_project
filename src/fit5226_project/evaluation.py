@@ -75,16 +75,17 @@ class Evaluation:
         total_score = 0
 
         # Loop over all environments in DQN environment
-        for i, env in tqdm(enumerate(self.dqn_envs.environments)):
-            env.set_with_animation(False)
+        for i, _ in tqdm(enumerate(self.dqn_envs.environments)):
             for agent_location in tqdm(self.generate_grid_location_list(self.n, self.n)):
-                self.dqn_envs.current_sub_environment.agent.has_item = False # metric assumes that agent starts without item
+                # Initialize episode with a given agent location
+                self.dqn_envs.initialize_for_new_episode(agent_location=agent_location, env_index=i)
+
                 # Ensure agent location is not same place with item and goal
-                if agent_location == env.item.location or agent_location == env.goal_location:
+                if agent_location == self.dqn_envs.current_sub_environment.item.get_location() or agent_location == self.dqn_envs.current_sub_environment.goal_location:
                     continue
 
-                # Initialize episode with a given agent location
-                self.dqn_envs.initialize_for_new_episode(agent_location=agent_location, index=i)
+                # Metric assumes that agent starts without item
+                self.dqn_envs.current_sub_environment.agent.has_item = False
 
                 # Get start, item, and goal location to calcurate distance
                 start_location = self.dqn_envs.current_sub_environment.agent.get_location()
@@ -116,7 +117,7 @@ class Evaluation:
                     num_episodes += 1 # increase the episode
             
             # Return the average score across all possible tests
-            return total_score / num_episodes
+            return (total_score / num_episodes) if num_episodes != 0 else 0
     
     def visualize_dqn(self, num_of_vis: int = 5) -> None:
         """
@@ -151,7 +152,7 @@ if __name__ == "__main__":
 
     # Load DQN model 
     current_path = os.getcwd() # get current path
-    saved_path = current_path+'/trained_dqn.pth'
+    saved_path = current_path+'/trained_dqn_agent_2.pth'
     evl.load_trained_dqn(saved_path)
 
     # Conduct the performance test
