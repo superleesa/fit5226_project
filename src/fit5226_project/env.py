@@ -125,24 +125,19 @@ class Environment:
 
         # Large reward for reaching the goal with the item
         if self.is_goal_state(current_state):
-            return self.goal_state_reward  # High reward for successfully reaching the goal with item
-        
-        # #  # Large penalty for reaching the goal without the item
-        # if prev_state.agent_location == current_state.item_location and current_state.has_item and prev_state.has_item :
-        #     return -50
+            return self.goal_state_reward
 
         # Reward for collecting the item
         if action == Action.COLLECT and prev_state.agent_location == current_state.item_location and not prev_state.has_item:
-            return self.item_state_reward  # Reward for collecting the item
+            return self.item_state_reward
 
         # Penalize if attempting to collect when not at item location or already has item
         if action == Action.COLLECT and (prev_state.has_item or prev_state.agent_location != current_state.item_location):
-            return self.item_revisit_penalty # Penalty for attempting to collect when not at item or already collected
+            return self.item_revisit_penalty
         if prev_state.has_item and current_state.agent_location == current_state.item_location:
-            return self.item_revisit_penalty  # Penalty for attempting to collect when not at item or already collected
+            return self.item_revisit_penalty
 
-        # Calculate distance-based reward or penalty
-        reward = self.time_penalty  # Default time penalty
+        reward = self.time_penalty
 
 
         return reward
