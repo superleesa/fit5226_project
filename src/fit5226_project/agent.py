@@ -40,6 +40,7 @@ class DQNAgent:
         self.target_model = copy.deepcopy(self.model)  # target model
 
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.alpha, amsgrad=True)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=1000, gamma=0.9)
         self.loss_fn = torch.nn.MSELoss()
         self.steps = 0  # to track when to update target network
         self.tau = 0.005
