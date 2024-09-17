@@ -1,15 +1,13 @@
-import random
 import numpy as np
 from tqdm import tqdm
 import time
-import os
 
 from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
 from fit5226_project.train import Trainer
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State, State
-from fit5226_project.actions import Action
+
 
 class Evaluation:
     def __init__(self, n=4) -> None:
@@ -145,19 +143,25 @@ class Evaluation:
 
 if __name__ == "__main__":
     # DQN
-    evl = Evaluation()
+    # evl = Evaluation()
 
-    # Training DQN
+    # # Training DQN
     # evl.run_dqn_train()
+    
+    dqn_envs = Assignment2Environment(n=4, with_animation=False)
+    dqn_agent = DQNAgent(with_log=True)
+    trainer = Trainer(dqn_agent, dqn_envs, with_log=True)
+    trainer.train(num_episodes=500)
+    dqn_agent.save_state("trained_dqn.pth")
 
-    # Load DQN model 
-    current_path = os.getcwd() # get current path
-    saved_path = current_path+'/trained_dqn_agent_2.pth'
-    evl.load_trained_dqn(saved_path)
+    # # Load DQN model 
+    # current_path = os.getcwd() # get current path
+    # saved_path = current_path+'/trained_dqn_agent_2.pth'
+    # evl.load_trained_dqn(saved_path)
 
-    # Conduct the performance test
-    average_score = evl.dqn_performance_test()
-    print(f"Average performance score (1 is the best): {average_score:.4f}")
+    # # Conduct the performance test
+    # average_score = evl.dqn_performance_test()
+    # print(f"Average performance score (1 is the best): {average_score:.4f}")
 
-    # Visualize randomly the environments and show the steps of the agent
-    evl.visualize_dqn()
+    # # Visualize randomly the environments and show the steps of the agent
+    # evl.visualize_dqn()

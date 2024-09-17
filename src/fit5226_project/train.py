@@ -7,7 +7,7 @@ from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State
-from fit5226_project.tracker import mlflow_manager
+from fit5226_project.plotter import Plotter
 
 class Trainer:
     def __init__(
@@ -29,6 +29,7 @@ class Trainer:
         self.update_target_episodes = update_target_episodes
         
         self.episode_rewards: list[float] = []
+        self.validation_scores: list[float] = []
         
         self.with_log = with_log
         self.global_step = 0
@@ -36,6 +37,9 @@ class Trainer:
         self.num_validation_episodes = num_validation_episodes
         
         self.save_checkpoint_interval = save_checkpoint_interval
+
+        # Initialize the Plotter
+        self.plotter = Plotter(save_dir="./plots")
 
 
     def train_one_episode(self, epoch_idx: int) -> None:
@@ -48,22 +52,13 @@ class Trainer:
         done = False
         total_reward = 0.0
         step_count = 0
-        current_log_cycle_reward_list = []
 
         while not done:
             state_array = self.state_to_array(current_state)
             available_actions = self.environment.get_available_actions(current_state)
             action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions)
             reward, next_state = self.environment.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
-            current_log_cycle_reward_list.append(reward)
             # print(f"S_t={current_state}, A={action.name}, R={reward}, S_t+1={next_state}")
-            if self.with_log and self.global_step % self.log_step == 0:
-                # print(f"R={reward}")
-                # print("========================")
-                running_reward = sum(current_log_cycle_reward_list) / len(current_log_cycle_reward_list)
-                # mlflow.log_metric("reward", running_reward, step=self.global_step)
-                mlflow_manager.log_reward(running_reward, step=self.global_step)
-                current_log_cycle_reward_list.clear()
             next_state_array = self.state_to_array(next_state)
             done = self.environment.is_goal_state(next_state)
             total_reward += reward
@@ -78,7 +73,6 @@ class Trainer:
         # decrease exploration over time
         self.agent.epsilon = max(self.agent.epsilon_min, self.agent.epsilon * self.agent.epsilon_decay)
         self.episode_rewards.append(total_reward)
-        mlflow_manager.log_episode_wise_reward(total_reward/step_count, episode_idx=epoch_idx)
 
     def state_to_array(self, state: Assignment2State) -> np.ndarray:
         """
@@ -100,9 +94,15 @@ class Trainer:
         """
         num_nn_passes = 0
         current_best_validation_score = -float('inf')
+
         for episode in range(1, num_episodes+1):
             print(f"Starting Episode {episode + 1}")
             self.train_one_episode(episode)
+
+            if episode % 10 == 0:
+                # print(self.agent.logged_data)
+                self.plotter.update_plot(self.agent.logged_data)
+
             if episode % self.update_target_episodes == 0:
                 self.agent.update_target_network()
                 if self.with_log:
@@ -110,11 +110,12 @@ class Trainer:
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
             if self.agent.steps != num_nn_passes:
                 validation_score = self.validate(episode)
+                self.validation_scores.append(validation_score)
                 if validation_score > current_best_validation_score:
                     print(f"New best validation score: {validation_score}")
                     current_best_validation_score = validation_score
                     self.save_agent(episode)
-                self.visualize_sample_episode()
+                # self.visualize_sample_episode()
                 num_nn_passes = self.agent.steps
             if episode % self.save_checkpoint_interval == 0:
                 self.save_agent(episode)
@@ -123,6 +124,8 @@ class Trainer:
         # Plot and save the rewards and epsilon decay after training is complete
         self.plot_rewards(save=True, filename='reward_plot.png')
         self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
+        self.plot_validation_scores(save=True, filename='validation_score_plot.png')  # Plot validation scores
+        self.plotter.update_plot(self.agent.logged_data)
 
     def visualize_sample_episode(self) -> None:
         sample_env = Assignment2Environment(n=4, with_animation=True)
@@ -184,8 +187,8 @@ class Trainer:
             calulated_scores.append(calculate_metrics_score(predicted_steps, start_location, item_location, goal_location))
         
         result = sum(calulated_scores) / self.num_validation_episodes
-        if self.with_log:
-            mlflow_manager.log_validation_score(result, step=current_episode_index)
+
+
         return result
 
     def save_agent(self, episode_index: int) -> None:
@@ -206,6 +209,22 @@ class Trainer:
         if save and filename:
             plt.savefig(filename)
             print(f"Reward plot saved to {filename}")
+        else:
+            plt.show()
+
+    def plot_validation_scores(self, save: bool = False, filename: str | None = None) -> None:
+        """
+        Plot the validation scores over episodes.
+        """
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.validation_scores, label='Validation Score per Episode')
+        plt.xlabel('Episode')
+        plt.ylabel('Validation Score')
+        plt.title('Validation Score Over Episodes')
+        plt.legend()
+        if save and filename:
+            plt.savefig(filename)
+            print(f"Validation score plot saved to {filename}")
         else:
             plt.show()
 
