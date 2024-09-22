@@ -14,7 +14,7 @@ mlflow ui
 
 Evaluate it with:
 ```bash
-python scripts/finetune.py notebooks/a2/episode_250.pt
+python scripts/evaluate.py notebooks/a2/episode_250.pt
 ```
 
 ## Installation
