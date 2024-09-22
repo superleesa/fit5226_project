@@ -5,6 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fit5226_project"
 version = "0.1.0"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "torch",
+    "scipy",
+    "tqdm",
+    "mlflow",
+    "PyYAML",
+    "fire",
+]
 
 [tool.ruff]
 line-length = 119
