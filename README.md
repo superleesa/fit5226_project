@@ -1,6 +1,6 @@
 # FIT5226 Project: Dynamic Grid World Agent with DQN
 
-![Grid World Image](docs/sample_grid_world.png)
+<img src="docs/sample_grid_world.png" alt="Grid World Image" width="400"/>
 
 Start fine-tuning with:
 ```bash
