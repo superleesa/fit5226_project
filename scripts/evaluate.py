@@ -5,7 +5,6 @@ from fit5226_project.evaluation import Evaluation
 
 def evaluate(model_path: str):
     evaluation = Evaluation(n=4)
-    evaluation.run_dqn_train()
     evaluation.load_trained_dqn(model_path)
     
     average_score = evaluation.dqn_performance_test()
