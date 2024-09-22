@@ -142,22 +142,3 @@ class Evaluation:
                 reward, next_state = self.dqn_envs.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals) # get next state
                 done = self.dqn_envs.is_goal_state(next_state) # Check if it is goal position
                 current_state = next_state # update current state
-
-if __name__ == "__main__":
-    # DQN
-    evl = Evaluation()
-
-    # Training DQN
-    # evl.run_dqn_train()
-
-    # Load DQN model 
-    current_path = os.getcwd() # get current path
-    saved_path = current_path+'/trained_dqn_agent_2.pth'
-    evl.load_trained_dqn(saved_path)
-
-    # Conduct the performance test
-    average_score = evl.dqn_performance_test()
-    print(f"Average performance score (1 is the best): {average_score:.4f}")
-
-    # Visualize randomly the environments and show the steps of the agent
-    evl.visualize_dqn()
