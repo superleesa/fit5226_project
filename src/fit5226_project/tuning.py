@@ -1,9 +1,6 @@
-import numpy as np
 import optuna
 import time
 import yaml
-
-from tqdm import tqdm
 
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
@@ -130,12 +127,3 @@ class Tuning:
         Visualize the optimization history
         '''
         optuna.visualization.plot_optimization_history(self.study)
-
-if __name__ == "__main__":
-    tuning = Tuning()
-
-    # Conduct hyperparameter tuning
-    tuning.run_hyperparameter_tuning() 
-
-    # Visualize the hyperparameter tuning
-    tuning.hyperparameter_tuning_visualization()
