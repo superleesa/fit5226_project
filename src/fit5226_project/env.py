@@ -4,7 +4,6 @@ from random import randint, choice, random
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.spatial.distance import cosine
 
 from fit5226_project.actions import Action
 from fit5226_project.state import State, Assignment2State
@@ -72,10 +71,6 @@ class Environment:
             plt.close(self.fig)  # type: ignore
         self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
         self.animate()  # Initial drawing of the grid
-
-        # Reset the last action and reward
-        self.last_action = None
-        self.last_reward = None
 
 
     def get_state(self) -> State:
