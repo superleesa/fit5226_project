@@ -123,10 +123,10 @@ class Environment:
             reward += self.goal_state_reward
 
         # Reward for collecting the item
-        if not prev_state.has_item and current_state.agent_location == current_state.item_location:
-            reward += self.item_state_reward
-        if action == Action.COLLECT and prev_state.agent_location == current_state.item_location and not prev_state.has_item:
-            reward += self.item_state_reward
+        if not prev_state.has_item and not current_state.has_item and current_state.agent_location == current_state.item_location:
+            reward += self.item_state_reward * (4 / 5)  # this one is for reaching the item position
+        if not prev_state.has_item and prev_state.agent_location == current_state.item_location and action == Action.COLLECT:
+            reward += self.item_state_reward / 5  # this one is for collecting the item
 
         return reward
 
