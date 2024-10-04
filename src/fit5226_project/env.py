@@ -316,7 +316,7 @@ class Assignment2Environment:
     """
     def __init__(
         self, 
-        n: int = 5,
+        n: int = 4,
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
