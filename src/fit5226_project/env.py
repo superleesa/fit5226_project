@@ -321,7 +321,6 @@ class Assignment2Environment:
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
         goal_no_item_penalty: int | float = DEFAULT_GOAL_NO_ITEM_PENALTY,
-        direction_reward_multiplier: int | float = 10,
         with_animation: bool = True,
     ) -> None:
         self.n = n
@@ -347,9 +346,6 @@ class Assignment2Environment:
                         self.environments.append(environment)
         
         # self.environments = [self.environments[10]]
-                
-        
-        self.direction_reward_multiplier = direction_reward_multiplier
         
         self.current_sub_environment: Environment
         self.state: Assignment2State
@@ -377,44 +373,6 @@ class Assignment2Environment:
     def set_with_animation(self, with_animation: bool) -> None:
         for environment in self.environments:
             environment.set_with_animation(with_animation)
-    
-    def get_direction_reward(self, action: Action) -> float:
-        """
-        Use cosine similarity to calculate the reward based on the direction of the action.
-        """
-        has_collected_item = self.state.has_item
-
-        # Define action direction vectors
-        if action == Action.LEFT:
-            action_direction = (-1, 0)
-        elif action == Action.RIGHT:
-            action_direction = (1, 0)
-        elif action == Action.DOWN:
-            action_direction = (0, -1)
-        elif action == Action.UP:
-            action_direction = (0, 1)
-        else:
-            action_direction = (0, 0)  # Invalid action, handle accordingly
-
-        # Calculate the direction reward based on the goal or item direction
-        if has_collected_item:
-            target_direction = self.state.goal_direction
-        else:
-            target_direction = self.state.item_direction
-
-        # Check if either vector is zero to avoid division by zero
-        if np.linalg.norm(action_direction) == 0 or np.linalg.norm(target_direction) == 0:
-            return 0.0  # No direction reward if either vector is zero
-
-        # Calculate the cosine similarity (1 - cosine distance)
-        try:
-            reward = 1 - cosine(action_direction, target_direction)
-        except ValueError:
-            # Handle any errors from invalid vectors
-            reward = 0.0
-
-        return reward * self.direction_reward_multiplier
-
     
     # def get_reward(self, prev_state: Assignment2State, current_state: Assignment2State, action: Action) -> float:
     #     state_raward = self.current_sub_environment.get_reward(prev_state, current_state,action)
