@@ -4,7 +4,6 @@ from random import randint, choice, random
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.spatial.distance import cosine
 
 from fit5226_project.actions import Action
 from fit5226_project.state import State, Assignment2State
@@ -13,7 +12,6 @@ from fit5226_project.state import State, Assignment2State
 DEFAULT_TIME_PENALTY = -1
 GOAL_STATE_REWARD = 200
 DEFAULT_ITEM_REWARD = 300
-DEFAULT_ITEM_REVISIT_PENALTY = -200
 DEFAULT_GOAL_NO_ITEM_PENALTY = -300
 
 
@@ -26,7 +24,6 @@ class Environment:
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
-        item_revisit_penalty: int | float = DEFAULT_ITEM_REVISIT_PENALTY,
         goal_no_item_penalty: int | float = DEFAULT_GOAL_NO_ITEM_PENALTY,
         has_item_prob: float = 0.3,
         with_animation: bool = True,
@@ -36,7 +33,6 @@ class Environment:
         self.time_penalty = time_penalty
         self.item_state_reward = item_state_reward
         self.goal_state_reward = goal_state_reward
-        self.item_revisit_penalty = item_revisit_penalty
         self.goal_no_item_penalty = goal_no_item_penalty
         self.has_item_prob = has_item_prob
 
@@ -75,10 +71,6 @@ class Environment:
             plt.close(self.fig)  # type: ignore
         self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
         self.animate()  # Initial drawing of the grid
-
-        # Reset the last action and reward
-        self.last_action = None
-        self.last_reward = None
 
 
     def get_state(self) -> State:
@@ -131,16 +123,10 @@ class Environment:
             reward += self.goal_state_reward
 
         # Reward for collecting the item
-        if not prev_state.has_item and current_state.agent_location == current_state.item_location:
-            reward += self.item_state_reward
-        if action == Action.COLLECT and prev_state.agent_location == current_state.item_location and not prev_state.has_item:
-            reward += self.item_state_reward
-
-        # Penalty for revisiting item location
-        if action == Action.COLLECT and (prev_state.has_item or prev_state.agent_location != current_state.item_location):
-            reward += self.item_revisit_penalty
-        if prev_state.has_item and current_state.agent_location == current_state.item_location:
-            reward += self.item_revisit_penalty
+        if not prev_state.has_item and not current_state.has_item and current_state.agent_location == current_state.item_location:
+            reward += self.item_state_reward * (4 / 5)  # this one is for reaching the item position
+        if not prev_state.has_item and prev_state.agent_location == current_state.item_location and action == Action.COLLECT:
+            reward += self.item_state_reward / 5  # this one is for collecting the item
 
         return reward
 
@@ -325,13 +311,11 @@ class Assignment2Environment:
     """
     def __init__(
         self, 
-        n: int = 5,
+        n: int = 4,
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
-        item_revisit_penalty: int | float = DEFAULT_ITEM_REVISIT_PENALTY,
         goal_no_item_penalty: int | float = DEFAULT_GOAL_NO_ITEM_PENALTY,
-        direction_reward_multiplier: int | float = 10,
         with_animation: bool = True,
     ) -> None:
         self.n = n
@@ -353,14 +337,10 @@ class Assignment2Environment:
                             item_state_reward=item_state_reward,
                             goal_state_reward=goal_state_reward,
                             goal_no_item_penalty=goal_no_item_penalty,
-                            item_revisit_penalty=item_revisit_penalty
                         )
                         self.environments.append(environment)
         
         # self.environments = [self.environments[10]]
-                
-        
-        self.direction_reward_multiplier = direction_reward_multiplier
         
         self.current_sub_environment: Environment
         self.state: Assignment2State
@@ -388,44 +368,6 @@ class Assignment2Environment:
     def set_with_animation(self, with_animation: bool) -> None:
         for environment in self.environments:
             environment.set_with_animation(with_animation)
-    
-    def get_direction_reward(self, action: Action) -> float:
-        """
-        Use cosine similarity to calculate the reward based on the direction of the action.
-        """
-        has_collected_item = self.state.has_item
-
-        # Define action direction vectors
-        if action == Action.LEFT:
-            action_direction = (-1, 0)
-        elif action == Action.RIGHT:
-            action_direction = (1, 0)
-        elif action == Action.DOWN:
-            action_direction = (0, -1)
-        elif action == Action.UP:
-            action_direction = (0, 1)
-        else:
-            action_direction = (0, 0)  # Invalid action, handle accordingly
-
-        # Calculate the direction reward based on the goal or item direction
-        if has_collected_item:
-            target_direction = self.state.goal_direction
-        else:
-            target_direction = self.state.item_direction
-
-        # Check if either vector is zero to avoid division by zero
-        if np.linalg.norm(action_direction) == 0 or np.linalg.norm(target_direction) == 0:
-            return 0.0  # No direction reward if either vector is zero
-
-        # Calculate the cosine similarity (1 - cosine distance)
-        try:
-            reward = 1 - cosine(action_direction, target_direction)
-        except ValueError:
-            # Handle any errors from invalid vectors
-            reward = 0.0
-
-        return reward * self.direction_reward_multiplier
-
     
     # def get_reward(self, prev_state: Assignment2State, current_state: Assignment2State, action: Action) -> float:
     #     state_raward = self.current_sub_environment.get_reward(prev_state, current_state,action)

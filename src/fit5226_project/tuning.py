@@ -23,7 +23,6 @@ class Tuning:
         batch_size = trial.suggest_categorical('batch_size', [16, 32, 64, 128, 256])
         time_penalty = trial.suggest_int('time_penalty', -10, -1)
         goal_no_item_penalty = trial.suggest_int('goal_no_item_penalty', -500, -100)
-        item_revisit_penalty = trial.suggest_int('item_revisit_penalty', -200, -50)
         item_state_reward = trial.suggest_int('item_state_reward', 100, 200)
         goal_state_reward = trial.suggest_int('goal_state_reward', 300, 600)
         num_episodes = trial.suggest_int('num_episodes', 100, 600)
@@ -33,10 +32,8 @@ class Tuning:
         n=4,  # Grid size
         time_penalty=time_penalty,
         goal_no_item_penalty=goal_no_item_penalty,
-        item_revisit_penalty=item_revisit_penalty,
         item_state_reward=item_state_reward,
         goal_state_reward=goal_state_reward,
-        direction_reward_multiplier=1,
         with_animation=False 
         ) 
         
