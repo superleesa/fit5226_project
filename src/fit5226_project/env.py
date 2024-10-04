@@ -13,7 +13,6 @@ from fit5226_project.state import State, Assignment2State
 DEFAULT_TIME_PENALTY = -1
 GOAL_STATE_REWARD = 200
 DEFAULT_ITEM_REWARD = 300
-DEFAULT_ITEM_REVISIT_PENALTY = -200
 DEFAULT_GOAL_NO_ITEM_PENALTY = -300
 
 
@@ -26,7 +25,6 @@ class Environment:
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
-        item_revisit_penalty: int | float = DEFAULT_ITEM_REVISIT_PENALTY,
         goal_no_item_penalty: int | float = DEFAULT_GOAL_NO_ITEM_PENALTY,
         has_item_prob: float = 0.3,
         with_animation: bool = True,
@@ -36,7 +34,6 @@ class Environment:
         self.time_penalty = time_penalty
         self.item_state_reward = item_state_reward
         self.goal_state_reward = goal_state_reward
-        self.item_revisit_penalty = item_revisit_penalty
         self.goal_no_item_penalty = goal_no_item_penalty
         self.has_item_prob = has_item_prob
 
@@ -135,12 +132,6 @@ class Environment:
             reward += self.item_state_reward
         if action == Action.COLLECT and prev_state.agent_location == current_state.item_location and not prev_state.has_item:
             reward += self.item_state_reward
-
-        # Penalty for revisiting item location
-        if action == Action.COLLECT and (prev_state.has_item or prev_state.agent_location != current_state.item_location):
-            reward += self.item_revisit_penalty
-        if prev_state.has_item and current_state.agent_location == current_state.item_location:
-            reward += self.item_revisit_penalty
 
         return reward
 
@@ -329,7 +320,6 @@ class Assignment2Environment:
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
         goal_state_reward: int | float = GOAL_STATE_REWARD,
-        item_revisit_penalty: int | float = DEFAULT_ITEM_REVISIT_PENALTY,
         goal_no_item_penalty: int | float = DEFAULT_GOAL_NO_ITEM_PENALTY,
         direction_reward_multiplier: int | float = 10,
         with_animation: bool = True,
@@ -353,7 +343,6 @@ class Assignment2Environment:
                             item_state_reward=item_state_reward,
                             goal_state_reward=goal_state_reward,
                             goal_no_item_penalty=goal_no_item_penalty,
-                            item_revisit_penalty=item_revisit_penalty
                         )
                         self.environments.append(environment)
         
