@@ -87,7 +87,7 @@ class DQNAgent:
             target_net_state_dict[key] = policy_net_state_dict[key]*self.tau + target_net_state_dict[key]*(1-self.tau)
         self.target_model.load_state_dict(target_net_state_dict)
 
-    def select_action(self, state: np.ndarray, available_actions: List[Action], is_test: bool = False) -> tuple[Action, bool, np.ndarray]:
+    def select_action(self, state: torch.Tensor, available_actions: List[Action], is_test: bool = False) -> tuple[Action, bool, torch.Tensor]:
         """
         Select an action using an ε-greedy policy.
         
@@ -99,50 +99,38 @@ class DQNAgent:
             return random.choice(available_actions), False, qvals
         else:
             # Filter Q-values to only consider available actions
-            valid_qvals = [qvals[action.value] for action in available_actions]
+            valid_qvals = [qvals[action.value].item() for action in available_actions]
             return available_actions[np.argmax(valid_qvals)], True, qvals
         
-    def get_qvals(self, state: np.ndarray) -> np.ndarray:
+    def get_qvals(self, state: torch.Tensor) -> torch.Tensor:
         """
         Get Q-values for a given state from the prediction network.
         """
-        state_tensor = torch.from_numpy(state).float().unsqueeze(0)  # Convert to tensor
         with torch.no_grad():
-            qvals_tensor = self.model(state_tensor)
-        return qvals_tensor.detach().numpy()[0]
-
-    def get_maxQ(self, state: np.ndarray) -> float:
-        """
-        Get the maximum Q-value for a given state from the target network.
-        """
-        state_tensor = torch.from_numpy(state).float().unsqueeze(0)  # Convert to tensor
-        with torch.no_grad():
-            max_qval_tensor = torch.max(self.target_model(state_tensor))
-        return max_qval_tensor.item()
+            qvals_tensor = self.model(state.unsqueeze(0))
+        return qvals_tensor.detach().squeeze(0)
     
-    def get_double_q(self, state: np.ndarray) -> float:
-        """
-        Calculate the Double DQN target value for a given state.
-        """
-        state_tensor = torch.from_numpy(state).float().unsqueeze(0)
-        with torch.no_grad():
-            best_action_index = torch.argmax(self.model(state_tensor)[0]).item()
-            max_qval = self.target_model(state_tensor)[0][best_action_index].item()
-            
-        return max_qval
+    def precompute_targets(self, next_states: torch.Tensor, rewards: torch.Tensor, dones: torch.Tensor, use_double_dqn: bool = True) -> torch.Tensor:
+        if use_double_dqn:
+            with torch.no_grad():
+                best_action_indices = torch.argmax(self.model(next_states), dim=1).unsqueeze(1)
+                max_qvals = self.target_model(next_states).gather(1, best_action_indices).squeeze()
+                targets = rewards + self.discount_rate * max_qvals * (1 - dones)
+        else:
+            with torch.no_grad():
+                max_qvals = torch.max(self.target_model(next_states), dim=1).values
+                targets = rewards + self.discount_rate * max_qvals * (1 - dones)
+        return targets
 
-    def train_one_step(self, states: List[np.ndarray], actions: List[int], targets: List[float]) -> float:
+    def train_one_step(self, states: torch.Tensor, actions: torch.Tensor, targets: torch.Tensor) -> float:
         """
         Perform a single training step on the prediction network.
         """
         # Convert states, actions, and targets to tensors
-        state_tensors = torch.cat([torch.from_numpy(s).float().unsqueeze(0) for s in states])
-        action_tensors = torch.tensor(actions, dtype=torch.long).unsqueeze(1)
-        target_tensors = torch.tensor(targets, dtype=torch.float)
         
         self.optimizer.zero_grad()
-        qvals = self.model(state_tensors).gather(1, action_tensors).squeeze()
-        losses = self.loss_fn(qvals, target_tensors)
+        qvals = self.model(states).gather(1, actions.unsqueeze(1)).squeeze()
+        losses = self.loss_fn(qvals, targets)
         loss = losses.mean()
         loss.backward()
         self.optimizer.step()
@@ -151,13 +139,14 @@ class DQNAgent:
         if self.with_log and self.steps % self.loss_log_interval == 0:
             with torch.no_grad():
                 mlflow_manager.log_avg_predicted_qval(qvals.mean().item(), step=self.steps)
-                mlflow_manager.log_avg_target_qval(target_tensors.mean().item(), step=self.steps)
+                mlflow_manager.log_avg_target_qval(targets.mean().item(), step=self.steps)
                 mlflow_manager.log_max_predicted_qval(qvals.max().item(), step=self.steps)
-                mlflow_manager.log_max_target_qval(target_tensors.max().item(), step=self.steps)
+                mlflow_manager.log_max_target_qval(targets.max().item(), step=self.steps)
         
         with torch.no_grad():
-            self.replay_buffer.update_priorities(losses.detach().numpy())  # TODO: maybe using l1 better (at least original paper uses l1)
-            
+            self.replay_buffer.update_priorities(losses.clone().detach())  # TODO: maybe using l1 better (at least original paper uses l1)
+        
+        self.steps += 1
         return loss.item()
 
     def replay(self) -> None:
@@ -169,18 +158,7 @@ class DQNAgent:
         
         states, actions, rewards, next_states, dones = self.replay_buffer.sample_batch(self.batch_size)
 
-        # Compute targets
-        targets = []
-        for i in range(self.batch_size):
-            if dones[i]:
-                targets.append(rewards[i])
-            else:
-                # max_future_q = self.get_maxQ(next_states[i])
-                max_future_q = self.get_double_q(next_states[i])
-                targets.append(rewards[i] + self.discount_rate * max_future_q)
-
-        self.steps += 1
-        # Train the model
+        targets = self.precompute_targets(next_states, rewards, dones)
         loss = self.train_one_step(states, actions, targets)
         
         if self.with_log and self.steps % self.loss_log_interval == 0:

@@ -4,6 +4,7 @@ from random import randint, choice, random
 
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
 
 from fit5226_project.actions import Action
 from fit5226_project.state import State, Assignment2State
@@ -144,7 +145,14 @@ class Environment:
     def is_goal_state(self, state: State) -> bool:
         return self.state.has_item and self.goal_location == state.agent_location
 
-    def animate(self, state: Assignment2State | None = None, prev_state: Assignment2State | None = None, is_greedy: bool | None = None, all_qvals: np.ndarray | None = None, chosen_action: Action | None = None) -> None:
+    def animate(
+        self,
+        state: Assignment2State | None = None,
+        prev_state: Assignment2State | None = None,
+        is_greedy: bool | None = None,
+        all_qvals: torch.Tensor | None = None,
+        chosen_action: Action | None = None
+    ) -> None:
         """
         Animates the action
         (basically just prints out the new state, but because it seems like the agent is "moving" because it's updated in the same figure)
@@ -410,7 +418,7 @@ class Assignment2Environment:
             item_direction=self.get_item_direction(),
         )
     
-    def step(self, action: Action, is_greedy: bool, all_qvals: np.ndarray) -> tuple[float, Assignment2State]:
+    def step(self, action: Action, is_greedy: bool, all_qvals: torch.Tensor) -> tuple[float, Assignment2State]:
         prev_state = self.get_state()
         self.update_state(action)
         next_state = self.get_state()
