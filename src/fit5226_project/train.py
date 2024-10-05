@@ -116,7 +116,7 @@ class Trainer:
                 if self.with_log:
                     print("Target network updated")
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
-            if self.agent.steps % self.validation_interval == 0:
+            if episode % self.validation_interval == 0:
                 validation_score, num_failed_episodes = self.validate(episode)
                 if validation_score > current_best_validation_score:
                     print(f"New best validation score: {validation_score}")
