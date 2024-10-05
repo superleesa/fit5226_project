@@ -204,7 +204,7 @@ class DQNAgent:
             'numpy_random_state': np.random.get_state(),  # Numpy random state
         }, filepath)
 
-    def load_state(self, filepath):
+    def load_state(self, filepath, load_seeds=False):
         """Load the entire agent state, including model weights and hyperparameters."""
         checkpoint = torch.load(filepath)
         self.model.load_state_dict(checkpoint['model_state_dict'])  # Load model weights
@@ -216,7 +216,8 @@ class DQNAgent:
         self.discount_rate = checkpoint['discount_rate']  # Restore discount factor
         self.replay_buffer = checkpoint['replay_buffer']  # Restore replay_buffer
         self.steps = checkpoint['steps']  # Restore steps
-        random.setstate(checkpoint['random_state'])  # Restore Python random state
-        np.random.set_state(checkpoint['numpy_random_state'])  # Restore Numpy random state
+        if load_seeds:
+            random.setstate(checkpoint['random_state'])  # Restore Python random state
+            np.random.set_state(checkpoint['numpy_random_state'])  # Restore Numpy random state
         # If using a learning rate scheduler:
         # scheduler.load_state_dict(checkpoint['scheduler_state_dict'])  # Restore scheduler state
