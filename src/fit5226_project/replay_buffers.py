@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
 from collections import deque
 import random
+from typing import TypeAlias
 
 import numpy as np
+import torch
 
-Experience = tuple[np.ndarray, int, float, np.ndarray, bool]
-
+Experience: TypeAlias = tuple[torch.Tensor, int, float, torch.Tensor, bool]
+BatchExperience: TypeAlias = tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
 
 class BaseReplayBuffer(ABC):
     def __init__(self, max_size: int):
@@ -18,7 +20,7 @@ class BaseReplayBuffer(ABC):
         self.buffer.append(experience)
 
     @abstractmethod
-    def sample_batch(self, batch_size: int) -> tuple[list[np.ndarray], list[int], list[float], list[np.ndarray], list[bool]]:
+    def sample_batch(self, batch_size: int) -> BatchExperience:
         raise NotImplementedError
 
 
@@ -26,18 +28,18 @@ class ReplayBuffer(BaseReplayBuffer):
     def __init__(self, max_size: int):
         self.max_size = max_size
 
-    def sample_batch(self, batch_size: int) -> tuple[list[np.ndarray], list[int], list[float], list[np.ndarray], list[bool]]:
+    def sample_batch(self, batch_size: int) -> BatchExperience:
         """
         Sample a batch of experiences from the replay memory.
         """
         batch = random.sample(self.buffer, batch_size)
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = zip(*batch)
         return (
-            state_batch,
-            action_batch,
-            reward_batch,
-            next_state_batch,
-            done_batch,
+            torch.stack(state_batch),
+            torch.tensor(action_batch),
+            torch.tensor(reward_batch),
+            torch.stack(next_state_batch),
+            torch.tensor(done_batch, dtype=torch.uint8),
         )
 
 
@@ -61,7 +63,7 @@ class PrioritizedExperienceBuffer(BaseReplayBuffer):
         max_priority = self.priorities.max() if self.buffer else 1.0  # max to ensure newly added experience has the highest priority
         self.priorities[len(self.buffer) - 1] = max_priority
 
-    def sample_batch(self, batch_size: int) -> tuple[list[np.ndarray], list[int], list[float], list[np.ndarray], list[bool]]:
+    def sample_batch(self, batch_size: int) -> BatchExperience:
         """
         Sample a batch of experiences from the replay memory.
         """
@@ -73,11 +75,11 @@ class PrioritizedExperienceBuffer(BaseReplayBuffer):
         samples = [self.buffer[idx] for idx in self.sampled_indices]
         state_batch, action_batch, reward_batch, next_state_batch, done_batch = zip(*samples)
         return (
-            state_batch,
-            action_batch,
-            reward_batch,
-            next_state_batch,
-            done_batch,
+            torch.stack(state_batch),
+            torch.tensor(action_batch),
+            torch.tensor(reward_batch),
+            torch.stack(next_state_batch),
+            torch.tensor(done_batch, dtype=torch.uint8),
         )
 
     def update_priorities(self, priorities: np.ndarray) -> None:

@@ -1,7 +1,9 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import time
 from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
 
 from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
@@ -55,7 +57,16 @@ class Trainer:
             available_actions = self.environment.get_available_actions(current_state)
             action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions)
             reward, next_state = self.environment.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
+            next_state_array = self.state_to_array(next_state)
+            done = self.environment.is_goal_state(next_state)
+            self.agent.replay_buffer.remember((state_array, action.value, reward, next_state_array, done))
+            self.agent.replay()  # maybe train inside
+            
+            total_reward += reward
             current_log_cycle_reward_list.append(reward)
+            step_count += 1
+            self.global_step += 1
+            
             # print(f"S_t={current_state}, A={action.name}, R={reward}, S_t+1={next_state}")
             if self.with_log and self.global_step % self.log_step == 0:
                 # print(f"R={reward}")
@@ -64,35 +75,27 @@ class Trainer:
                 # mlflow.log_metric("reward", running_reward, step=self.global_step)
                 mlflow_manager.log_reward(running_reward, step=self.global_step)
                 current_log_cycle_reward_list.clear()
-            next_state_array = self.state_to_array(next_state)
-            done = self.environment.is_goal_state(next_state)
-            total_reward += reward
-            
-            self.agent.replay_buffer.remember((state_array, action.value, reward, next_state_array, done))
-            self.agent.replay()  # maybe train inside
             
             current_state = next_state
-            step_count += 1
-            self.global_step += 1
 
         # decrease exploration over time
         self.agent.epsilon = max(self.agent.epsilon_min, self.agent.epsilon * self.agent.epsilon_decay)
         self.episode_rewards.append(total_reward)
         mlflow_manager.log_episode_wise_reward(total_reward/step_count, episode_idx=epoch_idx)
 
-    def state_to_array(self, state: Assignment2State) -> np.ndarray:
+    def state_to_array(self, state: Assignment2State) -> torch.Tensor:
         """
         Converts a State object into a numpy array suitable for input to the DQN.
         """
         # Convert Assignment2State to array
-        return np.array([
+        return torch.tensor(np.array([
             *state.agent_location,  # Agent's (x, y) location
             *state.item_location,   # Item's (x, y) location
             float(state.has_item),  # 1 if agent has item, 0 otherwise
             *state.goal_location,   # Goal's (x, y) location
             *state.goal_direction,  # Direction to goal (dx, dy)
             *state.item_direction   # Direction to item (dx, dy)
-        ])
+        ])).float()
 
     def train(self, num_episodes: int) -> None:
         """
