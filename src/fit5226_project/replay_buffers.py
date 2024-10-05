@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 Experience: TypeAlias = tuple[torch.Tensor, int, float, torch.Tensor, bool]
-BatchExperience: TypeAlias = tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+BatchExperience: TypeAlias = tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]  # each tensor should not be unsqueeze if they only have one dimension
 
 class BaseReplayBuffer(ABC):
     def __init__(self, max_size: int):

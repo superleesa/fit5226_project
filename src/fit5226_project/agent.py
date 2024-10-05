@@ -113,7 +113,7 @@ class DQNAgent:
     def precompute_targets(self, next_states: torch.Tensor, rewards: torch.Tensor, dones: torch.Tensor, use_double_dqn: bool = True) -> torch.Tensor:
         if use_double_dqn:
             with torch.no_grad():
-                best_action_indices = torch.argmax(self.model(next_states), dim=1)
+                best_action_indices = torch.argmax(self.model(next_states), dim=1).unsqueeze(1)
                 max_qvals = self.target_model(next_states).gather(1, best_action_indices).squeeze()
                 targets = rewards + self.discount_rate * max_qvals * (1 - dones)
         else:
@@ -129,7 +129,7 @@ class DQNAgent:
         # Convert states, actions, and targets to tensors
         
         self.optimizer.zero_grad()
-        qvals = self.model(states).gather(1, actions).squeeze()
+        qvals = self.model(states).gather(1, actions.unsqueeze(1)).squeeze()
         losses = self.loss_fn(qvals, targets)
         loss = losses.mean()
         loss.backward()
