@@ -9,6 +9,7 @@ def calculate_manhattan_distance(start_location: tuple[int, int], goal_location:
 def calculate_metrics_score(predicted_distance: int, start_location: tuple[int, int], item_location: tuple[int, int], goal_location: tuple[int, int]) -> float:
     """
     Calculates the proportion of the distance to the shortest distance.
+    NOTE: if predicted_distance is 0, the function will return 0.
     """
     # Calculate shortest distance from start to item to goal
     shortest_distance = (
