@@ -16,11 +16,13 @@ class Trainer:
         self,
         agent: DQNAgent, 
         environment: Assignment2Environment, 
-        with_log: bool = False, 
+        with_log: bool = True, 
         log_step: int = 100, 
         update_target_episodes: int = 20, 
         num_validation_episodes: int = 30, 
         save_checkpoint_interval: int = 50,  # in episodes
+        validation_interval: int = 5,  # in episodes
+        with_visualization: bool = True,
     ) -> None:
         """
         Initialize the Trainer with the DQN agent and environment.
@@ -38,6 +40,9 @@ class Trainer:
         self.num_validation_episodes = num_validation_episodes
         
         self.save_checkpoint_interval = save_checkpoint_interval
+        
+        self.validation_interval = validation_interval
+        self.with_visualization = with_visualization
 
 
     def train_one_episode(self, epoch_idx: int) -> None:
@@ -101,7 +106,7 @@ class Trainer:
         """
         Train the agent across multiple episodes.
         """
-        num_nn_passes = 0
+        
         current_best_validation_score = -float('inf')
         for episode in range(1, num_episodes+1):
             print(f"Starting Episode {episode + 1}")
@@ -111,14 +116,15 @@ class Trainer:
                 if self.with_log:
                     print("Target network updated")
             print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
-            if self.agent.steps != num_nn_passes:
-                validation_score = self.validate(episode)
+            if self.agent.steps % self.validation_interval == 0:
+                validation_score, num_failed_episodes = self.validate(episode)
                 if validation_score > current_best_validation_score:
                     print(f"New best validation score: {validation_score}")
                     current_best_validation_score = validation_score
                     self.save_agent(episode)
-                self.visualize_sample_episode()
-                num_nn_passes = self.agent.steps
+                if self.with_visualization:
+                    self.visualize_sample_episode()
+                
             if episode % self.save_checkpoint_interval == 0:
                 self.save_agent(episode)
                 
@@ -152,8 +158,14 @@ class Trainer:
         
         plt.close('all')
 
-    def validate(self, current_episode_index: int):
+    def validate(self, current_episode_index: int) -> tuple[float, float]:
+        """
+        Don't use this method when animating because we kill each episode after 0.01 seconds.
+        """
+        KILL_EPISODE_AFTER = 0.01
+        
         calulated_scores = []
+        num_failed_episodes = 0
         for _ in range(self.num_validation_episodes):
             sample_env = Assignment2Environment(n=4, with_animation=False)
             sample_env.initialize_for_new_episode()
@@ -167,9 +179,13 @@ class Trainer:
             
             prev_state = None
             predicted_steps = 0
+            is_failed = False
             while not done:
-                if time.time() - start_time > 20:
+                # we can't always detect cycles (unless we track the whole path and use set)
+                # which is expensive so we just kill the episode after a certain time
+                if time.time() - start_time > KILL_EPISODE_AFTER:
                     predicted_steps = 0
+                    is_failed = True
                     break
                 state_array = self.state_to_array(current_state)
                 available_actions = sample_env.get_available_actions(current_state)
@@ -180,16 +196,20 @@ class Trainer:
                 # check for three-step cycle and stop early
                 if next_state == prev_state:
                     predicted_steps = 0
+                    is_failed = True
                     break
                 prev_state = current_state
                 current_state = next_state
                 predicted_steps += 1
             calulated_scores.append(calculate_metrics_score(predicted_steps, start_location, item_location, goal_location))
+            if is_failed:
+                num_failed_episodes += 1
         
         result = sum(calulated_scores) / self.num_validation_episodes
         if self.with_log:
             mlflow_manager.log_validation_score(result, step=current_episode_index)
-        return result
+            mlflow_manager.log_num_failed_validation_episodes(num_failed_episodes, step=current_episode_index)
+        return result, num_failed_episodes
 
     def save_agent(self, episode_index: int) -> None:
         save_path = Path(f"checkpoints/episode_{episode_index}.pt")

@@ -35,6 +35,9 @@ class MLFlowManager:
     def log_validation_score(self, validation_score: float, step: int):
         mlflow.log_metric("validation_score", validation_score, step=step)
     
+    def log_num_failed_validation_episodes(self, num_failed_episodes: float, step: int):
+        mlflow.log_metric("failed_validation_episodes", num_failed_episodes, step=step)
+    
     def end_run(self):
         mlflow.end_run()
 
