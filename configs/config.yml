@@ -1,0 +1,29 @@
+env:
+  goal_state_reward: 20
+  item_state_reward: 10
+  goal_no_item_penalty: -1
+  time_penalty: -5
+  with_animation: False
+agent:
+  alpha: 0.0001
+  discount_rate: 0.8383173774602056
+  epsilon: 0.2
+  replay_memory_size: 3901
+  tau: 0.08909628926643873
+  epsilon_decay: 0.99997
+  epsilon_min: 0.007
+  batch_size: 128
+  min_replay_memory_size: 1000
+  loss_log_interval: 100
+trainer:
+  update_target_interval: 20
+  num_episodes: 2000
+  with_log: True
+  with_validation: True
+  with_visualization: False
+  log_reward_step: 100
+  num_validation_episodes: 30
+  save_checkpoint_interval: 50  # in episodes
+  validation_interval: 50  # in episodes
+  save_checkpoints: True
+  
