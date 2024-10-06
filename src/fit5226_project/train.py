@@ -143,36 +143,32 @@ class Trainer:
                 
             if episode % self.save_checkpoint_interval == 0:
                 self.save_agent(episode)
-                
-        
-        # Plot and save the rewards and epsilon decay after training is complete
-        # self.plot_rewards(save=True, filename='reward_plot.png')
-        # self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
 
-    def visualize_sample_episode(self) -> None:
-        sample_env = Assignment2Environment(n=4, with_animation=True)
-        sample_env.initialize_for_new_episode()
-        current_state = sample_env.get_state()
-        start_time = time.time()
-        done = False
-        
-        prev_state = None
-        
-        while not done and time.time() - start_time < 1*20:
-            state_array = self.state_to_array(current_state)
-            available_actions = sample_env.get_available_actions(current_state)
-            action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions, is_test=True)
-            reward, next_state = sample_env.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
-            done = sample_env.is_goal_state(next_state)
+    def visualize_sample_episode(self, num_visualizations: int = 3) -> None:
+        for _ in range(num_visualizations):
+            sample_env = Assignment2Environment(n=4, with_animation=True)
+            sample_env.initialize_for_new_episode()
+            current_state = sample_env.get_state()
+            start_time = time.time()
+            done = False
             
-            # check for three-step cycle and stop early
-            if next_state == prev_state:
-                print("cycle detected... breaking")
-                break
-            prev_state = current_state
-            current_state = next_state
-        
-        plt.close('all')
+            prev_state = None
+            
+            while not done and time.time() - start_time < 1*5:
+                state_array = self.state_to_array(current_state)
+                available_actions = sample_env.get_available_actions(current_state)
+                action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions, is_test=True)
+                reward, next_state = sample_env.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
+                done = sample_env.is_goal_state(next_state)
+                
+                # check for three-step cycle and stop early
+                if next_state == prev_state:
+                    print("cycle detected... breaking")
+                    break
+                prev_state = current_state
+                current_state = next_state
+            
+            plt.close(sample_env.current_sub_environment.fig)
 
     def validate(self, current_episode_index: int | None = None, episode_samples: list[tuple[tuple[int, int], int]] | None = None, is_eval: bool = False) -> tuple[float, float, float]:
         """
