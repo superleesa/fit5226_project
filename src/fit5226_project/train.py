@@ -15,28 +15,33 @@ class Trainer:
     def __init__(
         self,
         agent: DQNAgent, 
-        environment: Assignment2Environment, 
+        environment: Assignment2Environment,
+        update_target_interval: int = 20,
+        num_episodes: int = 500,
         with_log: bool = True, 
-        log_step: int = 100, 
-        update_target_episodes: int = 20, 
+        log_reward_step: int = 100, 
         num_validation_episodes: int = 30, 
         save_checkpoint_interval: int = 50,  # in episodes
         validation_interval: int = 5,  # in episodes
         with_validation: bool = True,
         with_visualization: bool = True,
+        save_checkpoints: bool = True,
     ) -> None:
         self.training_unique_id = generate_unique_id()
         
         self.agent = agent
         self.environment = environment
         
-        self.update_target_episodes = update_target_episodes
+        self.update_target_interval = update_target_interval
+        self.num_episodes = num_episodes
         
         self.episode_rewards: list[float] = []
         
         self.with_log = with_log
+        self.agent.with_log = self.with_log
+        
         self.global_step = 0
-        self.log_step = log_step
+        self.log_reward_step = log_reward_step
         self.num_validation_episodes = num_validation_episodes
         
         self.save_checkpoint_interval = save_checkpoint_interval
@@ -44,7 +49,7 @@ class Trainer:
         self.validation_interval = validation_interval
         self.with_validation = with_validation
         self.with_visualization = with_visualization
-
+        self.save_checkpoints= save_checkpoints
 
     def train_one_episode(self, epoch_idx: int) -> None:
         """
