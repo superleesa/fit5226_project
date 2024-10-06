@@ -49,6 +49,8 @@ class Trainer:
         """
         Conducts training for a single episode.
         """
+        KILL_EPISODE_AFTER = 1
+        
         self.environment.initialize_for_new_episode()
 
         current_state = self.environment.get_state()
@@ -57,7 +59,10 @@ class Trainer:
         step_count = 0
         current_log_cycle_reward_list = []
 
+        start_time = time.time()
         while not done:
+            if time.time() - start_time > KILL_EPISODE_AFTER:
+                break
             state_array = self.state_to_array(current_state)
             available_actions = self.environment.get_available_actions(current_state)
             action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions)
