@@ -1,3 +1,4 @@
+import itertools
 import time
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.state import Assignment2State
 from fit5226_project.tracker import mlflow_manager
+from fit5226_project.utils import generate_grid_location_list, generate_unique_id
+
 
 class Trainer:
     def __init__(
@@ -89,12 +92,8 @@ class Trainer:
             step_count += 1
             self.global_step += 1
             
-            # print(f"S_t={current_state}, A={action.name}, R={reward}, S_t+1={next_state}")
-            if self.with_log and self.global_step % self.log_step == 0:
-                # print(f"R={reward}")
-                # print("========================")
+            if self.with_log and self.global_step % self.log_reward_step == 0:
                 running_reward = sum(current_log_cycle_reward_list) / len(current_log_cycle_reward_list)
-                # mlflow.log_metric("reward", running_reward, step=self.global_step)
                 mlflow_manager.log_reward(running_reward, step=self.global_step)
                 current_log_cycle_reward_list.clear()
             
@@ -107,9 +106,6 @@ class Trainer:
         mlflow_manager.log_episode_wise_reward(total_reward/step_count, episode_idx=epoch_idx)
 
     def state_to_array(self, state: Assignment2State) -> torch.Tensor:
-        """
-        Converts a State object into a numpy array suitable for input to the DQN.
-        """
         # Convert Assignment2State to array
         return torch.tensor(np.array([
             *state.agent_location,  # Agent's (x, y) location
@@ -258,37 +254,3 @@ class Trainer:
         save_path = Path(f"checkpoints/{self.training_unique_id}/episode_{episode_index}.pt")
         save_path.parent.mkdir(parents=True, exist_ok=True)
         self.agent.save_state(save_path)
-
-    def plot_rewards(self, save: bool = False, filename: str | None = None) -> None:
-        """
-        Plot the total reward earned per episode.
-        """
-        plt.figure(figsize=(10, 5))
-        plt.plot(self.episode_rewards, label='Total Reward per Episode')
-        plt.xlabel('Episode')
-        plt.ylabel('Total Reward')
-        plt.title('Reward Earned per Episode')
-        plt.legend()
-        if save and filename:
-            plt.savefig(filename)
-            print(f"Reward plot saved to {filename}")
-        else:
-            plt.show()
-
-    def plot_epsilon_decay(self, num_episodes: int, save: bool = False, filename: str | None = None) -> None:
-        """
-        Plot the epsilon decay over episodes.
-        """
-        epsilons = [max(self.agent.epsilon_min, self.agent.epsilon * (self.agent.epsilon_decay ** i)) for i in range(num_episodes)]
-        
-        plt.figure(figsize=(10, 5))
-        plt.plot(range(num_episodes), epsilons, label='Epsilon Decay')
-        plt.xlabel('Episodes')
-        plt.ylabel('Epsilon')
-        plt.title('Epsilon Decay over Episodes')
-        plt.legend()
-        if save and filename:
-            plt.savefig(filename)
-            print(f"Epsilon decay plot saved to {filename}")
-        else:
-            plt.show()
