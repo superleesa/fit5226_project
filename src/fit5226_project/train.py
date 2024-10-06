@@ -25,9 +25,8 @@ class Trainer:
         with_validation: bool = True,
         with_visualization: bool = True,
     ) -> None:
-        """
-        Initialize the Trainer with the DQN agent and environment.
-        """
+        self.training_unique_id = generate_unique_id()
+        
         self.agent = agent
         self.environment = environment
         
@@ -222,7 +221,7 @@ class Trainer:
         return result, num_failed_episodes
 
     def save_agent(self, episode_index: int) -> None:
-        save_path = Path(f"checkpoints/episode_{episode_index}.pt")
+        save_path = Path(f"checkpoints/{self.training_unique_id}/episode_{episode_index}.pt")
         save_path.parent.mkdir(parents=True, exist_ok=True)
         self.agent.save_state(save_path)
 
