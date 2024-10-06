@@ -15,7 +15,7 @@ env = Assignment2Environment(
     item_state_reward=200,
     goal_state_reward=300,
     direction_reward_multiplier=1,
-    with_animation=False  # Enable animation for visualization
+    with_animation=False,  # Enable animation for visualization
 )
 
 # Initialize the agent with updated parameters
@@ -29,10 +29,10 @@ agent = DQNAgent(
     epsilon_min=0.1,
     replay_memory_size=1000,  # Updated memory size
     batch_size=200,  # Updated batch size
-    update_target_steps=500
+    update_target_steps=500,
 )
 
-#Load the pre-trained state (weights and hyperparameters)
+# Load the pre-trained state (weights and hyperparameters)
 agent.load_state("dqn_agent_state_truncated.pth")  # Replace with the path to your saved state file
 
 # Initialize the trainer with the agent and environment

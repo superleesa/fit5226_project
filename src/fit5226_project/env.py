@@ -57,7 +57,10 @@ class Environment:
 
     def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None) -> None:
         if agent_location is None:
-            self.agent.set_location_randomly(self.n, self.n,) 
+            self.agent.set_location_randomly(
+                self.n,
+                self.n,
+            )
         else:
             self.agent.location = agent_location
         self.agent.has_item = True if random() < self.has_item_prob else False
@@ -66,17 +69,16 @@ class Environment:
             item_location=self.item.get_location(),
             has_item=self.agent.has_item,
         )
-        
+
         # ensure that no multiple matplotlib windows open
         if hasattr(self, "fig"):
             plt.close(self.fig)  # type: ignore
         self.fig, self.ax = plt.subplots(figsize=(8, 8)) if self.with_animation else (None, None)
         self.animate()  # Initial drawing of the grid
 
-
     def get_state(self) -> State:
         return self.state
-    
+
     def set_with_animation(self, with_animation: bool) -> None:
         self.with_animation = with_animation
 
@@ -113,7 +115,7 @@ class Environment:
         Calculate the reward based on the agent's actions and state transitions.
         """
         reward = self.time_penalty
-        
+
         # Large penalty for reaching the goal without the item
         if current_state.agent_location == self.goal_location and not current_state.has_item:
             reward += self.goal_no_item_penalty
@@ -124,9 +126,17 @@ class Environment:
             reward += self.goal_state_reward
 
         # Reward for collecting the item
-        if not prev_state.has_item and not current_state.has_item and current_state.agent_location == current_state.item_location:
+        if (
+            not prev_state.has_item
+            and not current_state.has_item
+            and current_state.agent_location == current_state.item_location
+        ):
             reward += self.item_state_reward * (4 / 5)  # this one is for reaching the item position
-        if not prev_state.has_item and prev_state.agent_location == current_state.item_location and action == Action.COLLECT:
+        if (
+            not prev_state.has_item
+            and prev_state.agent_location == current_state.item_location
+            and action == Action.COLLECT
+        ):
             reward += self.item_state_reward / 5  # this one is for collecting the item
 
         return reward
@@ -135,7 +145,7 @@ class Environment:
         """
         Be careful: this method updates the state of the environment
         """
-        self.agent.move(action,self.n)
+        self.agent.move(action, self.n)
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
@@ -151,7 +161,7 @@ class Environment:
         prev_state: Assignment2State | None = None,
         is_greedy: bool | None = None,
         all_qvals: torch.Tensor | None = None,
-        chosen_action: Action | None = None
+        chosen_action: Action | None = None,
     ) -> None:
         """
         Animates the action
@@ -194,11 +204,11 @@ class Environment:
             fontsize=16,
             color="red",
         )
-        
+
         # FIXME: this doesn't work for State (only works for Assignment2State)
         state_str = str(self.state) if state is None else str(state)
-        state_text = "".join(state_str.split(',')[:5]) + '\n' + "".join(state_str.split(',')[5:])
-        
+        state_text = "".join(state_str.split(",")[:5]) + "\n" + "".join(state_str.split(",")[5:])
+
         # show state info
         self.ax.text(
             2,
@@ -209,19 +219,19 @@ class Environment:
             fontsize=10,
             color="orange",
         )
-        
+
         # prints: if the action selected was greedy or random
         if is_greedy is not None:
             self.ax.text(
-            self.n,
-            self.n,
-            "Action is greedy" if is_greedy else "Action is random",
-            ha="center",
-            va="center",
-            fontsize=10,
-            color="black",
-        )
-        
+                self.n,
+                self.n,
+                "Action is greedy" if is_greedy else "Action is random",
+                ha="center",
+                va="center",
+                fontsize=10,
+                color="black",
+            )
+
         # prints the q values for all possible actions in the previous state
         # note: this is only printed if the action was greedy (because if random, the q values did not matter for action selection)
         # note2: only "possible" actions are printed i.e. (if agent is not at the item position, it does not print the collect q value)
@@ -236,17 +246,17 @@ class Environment:
                 self.ax.text(
                     prev_agent_location_on_plot_x - box_center_to_val_location,
                     prev_agent_location_on_plot_y,
-                    f'{left_q:.2f}',
+                    f"{left_q:.2f}",
                     ha="center",
                     va="center",
                     fontsize=13,
                     color="red" if chosen_action == Action.LEFT else "black",
                 )
-            if Action.RIGHT in possible_actions:    
+            if Action.RIGHT in possible_actions:
                 self.ax.text(
                     prev_agent_location_on_plot_x + box_center_to_val_location,
                     prev_agent_location_on_plot_y,
-                    f'{right_q:.2f}',
+                    f"{right_q:.2f}",
                     ha="center",
                     va="center",
                     fontsize=13,
@@ -256,7 +266,7 @@ class Environment:
                 self.ax.text(
                     prev_agent_location_on_plot_x,
                     prev_agent_location_on_plot_y - box_center_to_val_location,
-                    f'{down_q:.2f}',
+                    f"{down_q:.2f}",
                     ha="center",
                     va="center",
                     fontsize=13,
@@ -266,7 +276,7 @@ class Environment:
                 self.ax.text(
                     prev_agent_location_on_plot_x,
                     prev_agent_location_on_plot_y + box_center_to_val_location,
-                    f'{up_q:.2f}',
+                    f"{up_q:.2f}",
                     ha="center",
                     va="center",
                     fontsize=13,
@@ -276,14 +286,12 @@ class Environment:
                 self.ax.text(
                     prev_agent_location_on_plot_x,
                     prev_agent_location_on_plot_y,
-                    f'{collect_q:.2f}',
+                    f"{collect_q:.2f}",
                     ha="center",
                     va="center",
                     fontsize=13,
                     color="red" if chosen_action == Action.COLLECT else "black",
                 )
-            
-                
 
         # TODO: add a message saying "item collected" if the agent has collected the item
         # or else there is a single frame where the agent is at the same location twice,
@@ -308,7 +316,7 @@ class Environment:
         self.update_state(action)
         next_state = self.get_state()
         self.animate()
-        reward = self.get_reward(prev_state, next_state,action)
+        reward = self.get_reward(prev_state, next_state, action)
         return reward, next_state
 
 
@@ -317,8 +325,9 @@ class Assignment2Environment:
     A wrapper class for multiple environments for Assignment 2
     This environment consits of multiple "sub-environments" where each sub-environment has a different goal and item location
     """
+
     def __init__(
-        self, 
+        self,
         n: int = 4,
         time_penalty: int | float = DEFAULT_TIME_PENALTY,
         item_state_reward: int | float = DEFAULT_ITEM_REWARD,
@@ -329,7 +338,7 @@ class Assignment2Environment:
         self.n = n
         # initialize a list of environments for all possible goal and item positions
         self.environments = []
-        
+
         for goal_x in range(self.n):
             for goal_y in range(self.n):
                 for item_x in range(self.n):
@@ -347,19 +356,23 @@ class Assignment2Environment:
                             goal_no_item_penalty=goal_no_item_penalty,
                         )
                         self.environments.append(environment)
-        
+
         # self.environments = [self.environments[10]]
-        
+
         self.current_sub_environment: Environment
         self.state: Assignment2State
-    
+
     def get_random_sub_environment(self) -> Environment:
         return choice(self.environments)
-    
-    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None, env_index: int | None = None) -> None:
-        self.current_sub_environment = self.get_random_sub_environment() if env_index is None else self.environments[env_index]
+
+    def initialize_for_new_episode(
+        self, agent_location: tuple[int, int] | None = None, env_index: int | None = None
+    ) -> None:
+        self.current_sub_environment = (
+            self.get_random_sub_environment() if env_index is None else self.environments[env_index]
+        )
         self.current_sub_environment.initialize_for_new_episode(agent_location)
-        
+
         self.state = Assignment2State(
             agent_location=self.current_sub_environment.agent.get_location(),
             item_location=self.current_sub_environment.item.get_location(),
@@ -369,14 +382,14 @@ class Assignment2Environment:
             item_direction=self.get_item_direction(),
         )
         # NOTE: animation should be handled by individual sub-environments
-    
-    def get_available_actions(self, state:Assignment2State) -> list[Action]:
+
+    def get_available_actions(self, state: Assignment2State) -> list[Action]:
         return self.current_sub_environment.get_available_actions(state)
 
     def set_with_animation(self, with_animation: bool) -> None:
         for environment in self.environments:
             environment.set_with_animation(with_animation)
-    
+
     # def get_reward(self, prev_state: Assignment2State, current_state: Assignment2State, action: Action) -> float:
     #     state_raward = self.current_sub_environment.get_reward(prev_state, current_state,action)
     #     action_reward = self.get_direction_reward(action)
@@ -384,26 +397,28 @@ class Assignment2Environment:
     def get_reward(self, prev_state: Assignment2State, current_state: Assignment2State, action: Action) -> float:
         state_raward = self.current_sub_environment.get_reward(prev_state, current_state, action)
         return state_raward
-    
-    
+
     def get_state(self) -> Assignment2State:
         return self.state
-    
+
     def get_goal_direction(self) -> tuple[float, float]:
         return (
             self.current_sub_environment.goal_location[0] - self.current_sub_environment.agent.get_location()[0],
             self.current_sub_environment.goal_location[1] - self.current_sub_environment.agent.get_location()[1],
         )
-    
+
     def get_item_direction(self) -> tuple[float, float]:
         return (
             self.current_sub_environment.item.get_location()[0] - self.current_sub_environment.agent.get_location()[0],
             self.current_sub_environment.item.get_location()[1] - self.current_sub_environment.agent.get_location()[1],
         )
-    
+
     def is_goal_state(self, state: State) -> bool:
-        return self.current_sub_environment.state.has_item and self.current_sub_environment.goal_location == state.agent_location
-    
+        return (
+            self.current_sub_environment.state.has_item
+            and self.current_sub_environment.goal_location == state.agent_location
+        )
+
     def update_state(self, action: Action) -> None:
         """
         Be careful: this method updates the state of the environment
@@ -417,7 +432,7 @@ class Assignment2Environment:
             goal_direction=self.get_goal_direction(),
             item_direction=self.get_item_direction(),
         )
-    
+
     def step(self, action: Action, is_greedy: bool, all_qvals: torch.Tensor) -> tuple[float, Assignment2State]:
         prev_state = self.get_state()
         self.update_state(action)
@@ -487,7 +502,6 @@ class AgentObject(GridObject):
                 self.location = (x, y + 1)
         elif action == Action.COLLECT:
             self.has_item = True  # Action to collect the item (no bounds check needed)
-
 
 
 class ItemObject(GridObject):

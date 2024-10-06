@@ -13,7 +13,7 @@ def evaluate(model_path: str, config_path: str, num_visualizations: int = 3):
     agent.load_state(model_path)
     env = Assignment2Environment(n=4, **config["env"])
     trainer = Trainer(agent, env, **config["trainer"])
-    
+
     score, goal_reached_percentage, average_reward = trainer.validate(is_eval=True)
     print("score: ", score)
     print("goal_reached_percentage: ", goal_reached_percentage)
