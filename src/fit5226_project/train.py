@@ -22,6 +22,7 @@ class Trainer:
         num_validation_episodes: int = 30, 
         save_checkpoint_interval: int = 50,  # in episodes
         validation_interval: int = 5,  # in episodes
+        with_validation: bool = True,
         with_visualization: bool = True,
     ) -> None:
         """
@@ -42,6 +43,7 @@ class Trainer:
         self.save_checkpoint_interval = save_checkpoint_interval
         
         self.validation_interval = validation_interval
+        self.with_validation = with_validation
         self.with_visualization = with_visualization
 
 
@@ -166,7 +168,7 @@ class Trainer:
         
         plt.close('all')
 
-    def validate(self, current_episode_index: int) -> tuple[float, float]:
+    def validate(self, current_episode_index: int | None = None) -> tuple[float, float]:
         """
         Don't use this method when animating because we kill each episode after 0.01 seconds.
         """
@@ -214,7 +216,7 @@ class Trainer:
                 num_failed_episodes += 1
         
         result = sum(calulated_scores) / self.num_validation_episodes
-        if self.with_log:
+        if self.with_log and current_episode_index is not None:
             mlflow_manager.log_validation_score(result, step=current_episode_index)
             mlflow_manager.log_num_failed_validation_episodes(num_failed_episodes, step=current_episode_index)
         return result, num_failed_episodes
