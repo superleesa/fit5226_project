@@ -17,6 +17,7 @@ dependencies = [
     "optuna",
     "ipykernel",
     "optuna-dashboard",
+    "ruff",
 ]
 
 [tool.ruff]
