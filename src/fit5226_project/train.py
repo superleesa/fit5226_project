@@ -59,6 +59,7 @@ class Trainer:
         total_reward = 0.0
         step_count = 0
         current_log_cycle_reward_list = []
+        prev_state = None
 
         start_time = time.time()
         while not done:
@@ -70,6 +71,11 @@ class Trainer:
             reward, next_state = self.environment.step(action=action, is_greedy=is_greedy, all_qvals=all_qvals)
             next_state_array = self.state_to_array(next_state)
             done = self.environment.is_goal_state(next_state)
+            
+            # detection of three-step cycle
+            if next_state == prev_state:
+                break
+            
             self.agent.replay_buffer.remember((state_array, action.value, reward, next_state_array, done))
             self.agent.replay()  # maybe train inside
             
@@ -87,6 +93,7 @@ class Trainer:
                 mlflow_manager.log_reward(running_reward, step=self.global_step)
                 current_log_cycle_reward_list.clear()
             
+            prev_state = current_state
             current_state = next_state
 
         # decrease exploration over time
