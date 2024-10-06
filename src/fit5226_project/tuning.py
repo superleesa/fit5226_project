@@ -23,7 +23,7 @@ def generate_reward_combinations(
     return meaningful_options
 
 
-def objective(trial: optuna.Trial) -> float:
+def objective(trial: optuna.Trial) -> tuple[float, float, float]:
     alpha = trial.suggest_categorical("alpha", [1e-4, 5e-4, 1e-3, 1e-2])
     tau = trial.suggest_float("tau", 0.03, 0.8)
     discount_rate = trial.suggest_float("discount_rate", 0.7, 0.975)
@@ -84,14 +84,16 @@ def objective(trial: optuna.Trial) -> float:
     # if trial.should_prune():
     #     raise optuna.exceptions.TrialPruned()
 
-    return tune_trainer.validate()[0]
+    # considers all possible env states
+    average_path_length_score, goal_reached_percentage, average_reward = tune_trainer.validate(is_eval=True)
+    return average_path_length_score, goal_reached_percentage, average_reward
 
 
 def tune(study_name: str) -> None:
-    study = optuna.create_study(direction="maximize", storage="sqlite:///tuning_result.db", study_name=study_name)
-    num_trials = 200
-
-    study.optimize(objective, n_trials=num_trials, show_progress_bar=True)
+    NUM_TRIALS = 500
+    
+    study = optuna.create_study(directions=["maximize", "maximize", "maximize"], storage="sqlite:///tuning_result.db", study_name=study_name, load_if_exists=True)
+    study.optimize(objective, n_trials=NUM_TRIALS, show_progress_bar=True)
     
     print("Best Hyperparameters: ", study.best_params)
     print("Best Value: ", study.best_value)
