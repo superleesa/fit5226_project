@@ -130,8 +130,8 @@ class Trainer:
                 
         
         # Plot and save the rewards and epsilon decay after training is complete
-        self.plot_rewards(save=True, filename='reward_plot.png')
-        self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
+        # self.plot_rewards(save=True, filename='reward_plot.png')
+        # self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
 
     def visualize_sample_episode(self) -> None:
         sample_env = Assignment2Environment(n=4, with_animation=True)
