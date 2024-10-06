@@ -120,33 +120,32 @@ class Trainer:
             *state.item_direction   # Direction to item (dx, dy)
         ])).float()
 
-    def train(self, num_episodes: int) -> None:
+    def train(self) -> None:
         """
         Train the agent across multiple episodes.
         """
-        
         current_best_validation_score = -float('inf')
-        for episode in range(1, num_episodes+1):
+        for episode in range(1, self.num_episodes+1):
             if self.with_log:
                 print(f"Starting Episode {episode + 1}")
             self.train_one_episode(episode)
-            if episode % self.update_target_episodes == 0:
+            if episode % self.update_target_interval == 0:
                 self.agent.update_target_network()
                 if self.with_log:
                     print("Target network updated")
             if self.with_log:
                 print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
             if self.with_validation and episode % self.validation_interval == 0:
-                validation_score, num_failed_episodes = self.validate(episode)
+                validation_score, _, _ = self.validate(episode)
                 if validation_score > current_best_validation_score:
                     if self.with_log:
                         print(f"New best validation score: {validation_score}")
                     current_best_validation_score = validation_score
                     self.save_agent(episode)
                 if self.with_visualization:
-                    self.visualize_sample_episode()
+                    self.visualize_sample_episode(num_visualizations=1)
                 
-            if episode % self.save_checkpoint_interval == 0:
+            if self.save_checkpoints and episode % self.save_checkpoint_interval == 0:
                 self.save_agent(episode)
 
     def visualize_sample_episode(self, num_visualizations: int = 3) -> None:
