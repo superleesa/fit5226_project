@@ -174,17 +174,34 @@ class Trainer:
         
         plt.close('all')
 
-    def validate(self, current_episode_index: int | None = None) -> tuple[float, float]:
+    def validate(self, current_episode_index: int | None = None, episode_samples: list[tuple[tuple[int, int], int]] | None = None, is_eval: bool = False) -> tuple[float, float, float]:
         """
+        Sample a number of episodes and calculate the average score. 
         Don't use this method when animating because we kill each episode after 0.01 seconds.
+        
+        Args:
+            current_episode_index: The current episode index. (for logging purpose only)
+            episode_samples: A list of tuples containing the agent location and environment index for each episode to be sampled.
+            is_eval: If True, the method will use all possible combinations of agent location and environment index to calculate the metric.
+        
+        Returns: average_path_length_score, goal_reached_percentage, average_reward
         """
         KILL_EPISODE_AFTER = 0.01
         
+        # is is_eval, we will use all possible combinations of agent, item, and goal locations i.e. consider all possible states
+        episode_samples = episode_samples if episode_samples is not None else list(itertools.product(generate_grid_location_list(self.environment.n, self.environment.n), range(len(self.environment.environments)))) if is_eval else None
+        num_episodes = len(episode_samples) if episode_samples is not None else self.num_validation_episodes
         calulated_scores = []
-        num_failed_episodes = 0
-        for _ in range(self.num_validation_episodes):
-            sample_env = Assignment2Environment(n=4, with_animation=False)
-            sample_env.initialize_for_new_episode()
+        num_failed_episodes = total_predicted_steps = 0
+        total_rewards = 0.0
+        
+        sample_env = Assignment2Environment(n=self.environment.n, with_animation=False)
+        for sample_episode_idx in range(num_episodes):
+            if episode_samples is not None:
+                sample_env.initialize_for_new_episode(agent_location=episode_samples[sample_episode_idx][0], env_index=episode_samples[sample_episode_idx][1])
+            else:
+                sample_env.initialize_for_new_episode()
+            
             sample_env.current_sub_environment.agent.has_item = False # metric assumes that agent starts without item
             current_state = sample_env.get_state()
             start_time = time.time()
@@ -203,6 +220,7 @@ class Trainer:
                     predicted_steps = 0
                     is_failed = True
                     break
+                
                 state_array = self.state_to_array(current_state)
                 available_actions = sample_env.get_available_actions(current_state)
                 action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions, is_test=True)
@@ -214,18 +232,27 @@ class Trainer:
                     predicted_steps = 0
                     is_failed = True
                     break
+                
                 prev_state = current_state
                 current_state = next_state
                 predicted_steps += 1
+                total_predicted_steps += 1
+                total_rewards += reward
+            
             calulated_scores.append(calculate_metrics_score(predicted_steps, start_location, item_location, goal_location))
+            
             if is_failed:
                 num_failed_episodes += 1
         
-        result = sum(calulated_scores) / self.num_validation_episodes
+        average_path_length_score = sum(calulated_scores) / num_episodes if num_episodes != 0 else 0
+        goal_reached_percentage = (num_episodes - num_failed_episodes) / num_episodes if num_episodes != 0 else 0
+        average_reward = total_rewards / total_predicted_steps if total_predicted_steps != 0 else 0
+        
         if self.with_log and current_episode_index is not None:
-            mlflow_manager.log_validation_score(result, step=current_episode_index)
+            mlflow_manager.log_validation_score(average_path_length_score, step=current_episode_index)
             mlflow_manager.log_num_failed_validation_episodes(num_failed_episodes, step=current_episode_index)
-        return result, num_failed_episodes
+        
+        return average_path_length_score, goal_reached_percentage, average_reward
 
     def save_agent(self, episode_index: int) -> None:
         save_path = Path(f"checkpoints/{self.training_unique_id}/episode_{episode_index}.pt")
