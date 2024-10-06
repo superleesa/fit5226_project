@@ -97,7 +97,6 @@ def tune(study_name: str) -> None:
     
     print("Best Hyperparameters: ", study.best_params)
     print("Best Value: ", study.best_value)
+    
     with open("config.yml", "w") as file:
         yaml.dump(study.best_params, file, default_flow_style=False)
-
-    optuna.visualization.plot_optimization_history(study)
