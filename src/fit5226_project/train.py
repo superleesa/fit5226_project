@@ -109,17 +109,20 @@ class Trainer:
         
         current_best_validation_score = -float('inf')
         for episode in range(1, num_episodes+1):
-            print(f"Starting Episode {episode + 1}")
+            if self.with_log:
+                print(f"Starting Episode {episode + 1}")
             self.train_one_episode(episode)
             if episode % self.update_target_episodes == 0:
                 self.agent.update_target_network()
                 if self.with_log:
                     print("Target network updated")
-            print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
-            if episode % self.validation_interval == 0:
+            if self.with_log:
+                print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
+            if self.with_validation and episode % self.validation_interval == 0:
                 validation_score, num_failed_episodes = self.validate(episode)
                 if validation_score > current_best_validation_score:
-                    print(f"New best validation score: {validation_score}")
+                    if self.with_log:
+                        print(f"New best validation score: {validation_score}")
                     current_best_validation_score = validation_score
                     self.save_agent(episode)
                 if self.with_visualization:
