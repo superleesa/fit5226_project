@@ -1,7 +1,7 @@
-from fit5226_project.tuning import Tuning
+from fire import Fire
+
+from fit5226_project.tuning import tune
 
 
 if __name__ == "__main__":
-    tuning = Tuning()
-    tuning.run_hyperparameter_tuning()
-    tuning.hyperparameter_tuning_visualization()
+    Fire(tune)

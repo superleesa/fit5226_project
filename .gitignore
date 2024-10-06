@@ -4,3 +4,4 @@ src/fit5226_project.egg-info/
 *.pth
 mlruns/
 checkpoints/
+tuning_result.db

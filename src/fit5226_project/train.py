@@ -22,6 +22,7 @@ class Trainer:
         num_validation_episodes: int = 30, 
         save_checkpoint_interval: int = 50,  # in episodes
         validation_interval: int = 5,  # in episodes
+        with_validation: bool = True,
         with_visualization: bool = True,
     ) -> None:
         """
@@ -42,6 +43,7 @@ class Trainer:
         self.save_checkpoint_interval = save_checkpoint_interval
         
         self.validation_interval = validation_interval
+        self.with_validation = with_validation
         self.with_visualization = with_visualization
 
 
@@ -49,6 +51,8 @@ class Trainer:
         """
         Conducts training for a single episode.
         """
+        KILL_EPISODE_AFTER = 1
+        
         self.environment.initialize_for_new_episode()
 
         current_state = self.environment.get_state()
@@ -57,7 +61,10 @@ class Trainer:
         step_count = 0
         current_log_cycle_reward_list = []
 
+        start_time = time.time()
         while not done:
+            if time.time() - start_time > KILL_EPISODE_AFTER:
+                break
             state_array = self.state_to_array(current_state)
             available_actions = self.environment.get_available_actions(current_state)
             action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions)
@@ -109,17 +116,20 @@ class Trainer:
         
         current_best_validation_score = -float('inf')
         for episode in range(1, num_episodes+1):
-            print(f"Starting Episode {episode + 1}")
+            if self.with_log:
+                print(f"Starting Episode {episode + 1}")
             self.train_one_episode(episode)
             if episode % self.update_target_episodes == 0:
                 self.agent.update_target_network()
                 if self.with_log:
                     print("Target network updated")
-            print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
-            if episode % self.validation_interval == 0:
+            if self.with_log:
+                print(f"Episode {episode + 1} completed. Epsilon: {self.agent.epsilon:.4f}")
+            if self.with_validation and episode % self.validation_interval == 0:
                 validation_score, num_failed_episodes = self.validate(episode)
                 if validation_score > current_best_validation_score:
-                    print(f"New best validation score: {validation_score}")
+                    if self.with_log:
+                        print(f"New best validation score: {validation_score}")
                     current_best_validation_score = validation_score
                     self.save_agent(episode)
                 if self.with_visualization:
@@ -130,8 +140,8 @@ class Trainer:
                 
         
         # Plot and save the rewards and epsilon decay after training is complete
-        self.plot_rewards(save=True, filename='reward_plot.png')
-        self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
+        # self.plot_rewards(save=True, filename='reward_plot.png')
+        # self.plot_epsilon_decay(num_episodes, save=True, filename='epsilon_decay_plot.png')
 
     def visualize_sample_episode(self) -> None:
         sample_env = Assignment2Environment(n=4, with_animation=True)
@@ -158,7 +168,7 @@ class Trainer:
         
         plt.close('all')
 
-    def validate(self, current_episode_index: int) -> tuple[float, float]:
+    def validate(self, current_episode_index: int | None = None) -> tuple[float, float]:
         """
         Don't use this method when animating because we kill each episode after 0.01 seconds.
         """
@@ -206,7 +216,7 @@ class Trainer:
                 num_failed_episodes += 1
         
         result = sum(calulated_scores) / self.num_validation_episodes
-        if self.with_log:
+        if self.with_log and current_episode_index is not None:
             mlflow_manager.log_validation_score(result, step=current_episode_index)
             mlflow_manager.log_num_failed_validation_episodes(num_failed_episodes, step=current_episode_index)
         return result, num_failed_episodes
