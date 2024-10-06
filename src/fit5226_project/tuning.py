@@ -9,7 +9,7 @@ from fit5226_project.env import Assignment2Environment
 from fit5226_project.train import Trainer
 
 
-# FIXME: calculaing this in every trail is not efficient
+# FIXME: calculaing this in every trial is not efficient
 def generate_reward_combinations(
     goal_state_rewards: list[int | float],
     item_state_rewards: list[int | float],
@@ -41,9 +41,7 @@ def objective(trial: optuna.Trial) -> tuple[float, float, float]:
     )
     # we stringify this suggestion becuase optuna-dashboard doesn't support tuples as suggestion
     reward_combination_tags = [str(option) for option in reward_combinations]
-    reward_combination_tag = trial.suggest_categorical(
-            "reward_combination", reward_combination_tags
-        )
+    reward_combination_tag = trial.suggest_categorical("reward_combination", reward_combination_tags)
     goal_state_reward, item_state_reward, goal_no_item_penalty = ast.literal_eval(reward_combination_tag)
 
     tune_env = Assignment2Environment(
@@ -91,12 +89,17 @@ def objective(trial: optuna.Trial) -> tuple[float, float, float]:
 
 def tune(study_name: str) -> None:
     NUM_TRIALS = 500
-    
-    study = optuna.create_study(directions=["maximize", "maximize", "maximize"], storage="sqlite:///tuning_result.db", study_name=study_name, load_if_exists=True)
+
+    study = optuna.create_study(
+        directions=["maximize", "maximize", "maximize"],
+        storage="sqlite:///tuning_result.db",
+        study_name=study_name,
+        load_if_exists=True,
+    )
     study.optimize(objective, n_trials=NUM_TRIALS, show_progress_bar=True)
-    
+
     print("Best Hyperparameters: ", study.best_params)
     print("Best Value: ", study.best_value)
-    
+
     with open("config.yml", "w") as file:
         yaml.dump(study.best_params, file, default_flow_style=False)
