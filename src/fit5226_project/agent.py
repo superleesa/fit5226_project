@@ -184,7 +184,7 @@ class DQNAgent:
 
     def load_state(self, filepath, load_seeds=False):
         """Load the entire agent state, including model weights and hyperparameters."""
-        checkpoint = torch.load(filepath)
+        checkpoint = torch.load(filepath, weights_only=False)
         self.model.load_state_dict(checkpoint['model_state_dict'])  # Load model weights
         self.target_model.load_state_dict(checkpoint['target_model_state_dict'])  # Load target model weights
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])  # Restore optimizer state
