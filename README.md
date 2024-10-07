@@ -2,23 +2,27 @@
 
 <img src="docs/sample_grid_world.png" alt="Grid World Image" width="400"/>
 
-Start fine-tuning with:
+## Training / Fine-Tuning
 ```bash
-python scripts/finetune.py notebooks/a2/episode_250.pt
+python scripts/finetune.py  configs/config.yml  # train
+python scripts/finetune.py configs/config.yml checkpoints/{episode_x}.pt  # fine-tune
+mlflow ui  # monitor training (automatically tracked when you run above command)
 ```
 
-Monitor Training with:
+## Evaluation and Visualization
 ```bash
-mlflow ui
+python scripts/evaluate.py configs/eval_config.yml checkpoints/{episode_x}.pt
 ```
 
-Evaluate it with:
+## Hyper-Parameter Tuning
 ```bash
-python scripts/evaluate.py notebooks/a2/episode_250.pt
+python scripts/hp_tune.py study_name
+optuna-dashboard sqlite:///tuning_result.db  # monitor hyperparameter tuning
 ```
 
 ## Installation
 ```bash
+git clone https://github.com/superleesa/fit5226_project.git
 pip install -e .
 ```
 
