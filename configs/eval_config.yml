@@ -2,20 +2,10 @@ env:
   goal_state_reward: 20
   item_state_reward: 10
   goal_no_item_penalty: -1
-  time_penalty: -5
+  time_penalty: -1
   with_animation: False
 agent:
-  alpha: 0.0001
-  discount_rate: 0.8383173774602056
-  epsilon: 0.2
-  replay_memory_size: 3901
-  tau: 0.08909628926643873
-  epsilon_decay: 0.99997
-  epsilon_min: 0.007
-  batch_size: 128
-  min_replay_memory_size: 1000
 trainer:
-  update_target_episodes: 20
   with_log: False
   with_validation: False
   with_visualization: False
