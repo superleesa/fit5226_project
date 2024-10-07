@@ -78,6 +78,9 @@ def objective(trial: optuna.Trial) -> tuple[float, float, float]:
     )
     tune_trainer.train()
 
+    tune_trainer.save_agent()
+    trial.set_user_attr("checkpoint_id", tune_trainer.training_unique_id)
+    
     # # Prune the trial early if it's performing poorly
     # if trial.should_prune():
     #     raise optuna.exceptions.TrialPruned()

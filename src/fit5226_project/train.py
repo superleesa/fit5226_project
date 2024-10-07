@@ -278,7 +278,8 @@ class Trainer:
 
         return average_path_length_score, goal_reached_percentage, average_reward
 
-    def save_agent(self, episode_index: int) -> None:
-        save_path = Path(f"checkpoints/{self.training_unique_id}/episode_{episode_index}.pt")
+    def save_agent(self, episode_index: int | None = None) -> None:
+        checkpoint_name = f"episode_{episode_index}" if episode_index else "checkpoint"
+        save_path = Path(f"checkpoints/{self.training_unique_id}/{checkpoint_name}.pt")
         save_path.parent.mkdir(parents=True, exist_ok=True)
         self.agent.save_state(save_path)
