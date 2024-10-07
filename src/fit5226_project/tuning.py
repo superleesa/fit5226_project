@@ -1,8 +1,8 @@
 import ast
 import itertools
+import pickle
 
 import optuna
-import yaml
 
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
@@ -98,8 +98,5 @@ def tune(study_name: str) -> None:
     )
     study.optimize(objective, n_trials=NUM_TRIALS, show_progress_bar=True)
 
-    print("Best Hyperparameters: ", study.best_params)
-    print("Best Value: ", study.best_value)
-
-    with open("config.yml", "w") as file:
-        yaml.dump(study.best_params, file, default_flow_style=False)
+    with open("best_trials.pickle", "wb") as file:
+        pickle.dump(study.best_trials, file)
