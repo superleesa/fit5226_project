@@ -211,7 +211,9 @@ class Trainer:
         num_failed_episodes = total_predicted_steps = 0
         total_rewards = 0.0
 
-        sample_env = Assignment2Environment(n=self.environment.n, with_animation=False)
+        # we use the same environment as trainer to ensure that we use the same env parameters in validation
+        sample_env = deepcopy(self.environment)
+        self.environment.set_with_animation(False)
         for sample_episode_idx in range(num_episodes):
             if episode_samples is not None:
                 sample_env.initialize_for_new_episode(
