@@ -4,11 +4,14 @@ from fire import Fire
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
 from fit5226_project.train import Trainer
+from fit5226_project.utils import ensure_key_exists
 
 
 def evaluate(model_path: str, config_path: str, num_visualizations: int = 3):
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
+    ensure_key_exists(config)
+    
     agent = DQNAgent(**config["agent"])
     agent.load_state(model_path)
     env = Assignment2Environment(n=4, **config["env"])
