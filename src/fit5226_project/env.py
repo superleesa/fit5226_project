@@ -1,14 +1,14 @@
 from __future__ import annotations
-from abc import ABC
-from random import randint, choice, random
 
-import numpy as np
+from abc import ABC
+from random import choice, randint, random
+
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
 from fit5226_project.actions import Action
-from fit5226_project.state import State, Assignment2State
-
+from fit5226_project.state import Assignment2State, State
 
 DEFAULT_TIME_PENALTY = -1
 GOAL_STATE_REWARD = 200

@@ -1,17 +1,16 @@
 import random
-from typing import List
 from copy import deepcopy
 from pathlib import Path
+from typing import List
 
 import numpy as np
 import torch
 
 from fit5226_project.actions import Action
-
+from fit5226_project.replay_buffers import PrioritizedExperienceBuffer
 
 # import mlflow
 from fit5226_project.tracker import mlflow_manager
-from fit5226_project.replay_buffers import PrioritizedExperienceBuffer
 
 
 class DQNAgent:

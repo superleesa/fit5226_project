@@ -1,14 +1,15 @@
 import itertools
 import time
+from copy import deepcopy
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.agent import DQNAgent
 from fit5226_project.env import Assignment2Environment
+from fit5226_project.metrics import calculate_metrics_score
 from fit5226_project.state import Assignment2State
 from fit5226_project.tracker import mlflow_manager
 from fit5226_project.utils import generate_grid_location_list, generate_unique_id

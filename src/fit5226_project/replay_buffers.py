@@ -1,6 +1,6 @@
+import random
 from abc import ABC, abstractmethod
 from collections import deque
-import random
 from typing import TypeAlias
 
 import numpy as np
