@@ -227,9 +227,8 @@ class Trainer:
             else:
                 sample_env.initialize_for_new_episode()
 
-            sample_env.current_sub_environment.agent.has_item = False  # metric assumes that agent starts without item
             current_state = sample_env.get_state()
-            start_time = time.time()
+            
             done = False
             start_location = sample_env.current_sub_environment.agent.get_location()
             item_location = sample_env.current_sub_environment.item.get_location()
@@ -238,6 +237,7 @@ class Trainer:
             prev_state = None
             predicted_steps = 0
             is_failed = False
+            start_time = time.time()
             while not done:
                 # we can't always detect cycles (unless we track the whole path and use set)
                 # which is expensive so we just kill the episode after a certain time
