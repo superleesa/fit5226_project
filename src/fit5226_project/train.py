@@ -104,7 +104,9 @@ class Trainer:
         # decrease exploration over time
         self.agent.epsilon = max(self.agent.epsilon_min, self.agent.epsilon * self.agent.epsilon_decay)
         self.episode_rewards.append(total_reward)
-        mlflow_manager.log_episode_wise_reward(total_reward / step_count, episode_idx=epoch_idx)
+
+        if self.with_log:
+            mlflow_manager.log_episode_wise_reward(total_reward / step_count, episode_idx=epoch_idx)
 
     def state_to_array(self, state: Assignment2State) -> torch.Tensor:
         # Convert Assignment2State to array
