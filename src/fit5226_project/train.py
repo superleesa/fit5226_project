@@ -161,7 +161,7 @@ class Trainer:
 
             prev_state = None
 
-            while not done and time.time() - start_time < 1 * 5:
+            while not done and time.time() - start_time < 1 * 10:
                 state_array = self.state_to_array(current_state)
                 available_actions = sample_env.get_available_actions(current_state)
                 action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions, is_test=True)
