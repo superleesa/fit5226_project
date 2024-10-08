@@ -1,23 +1,23 @@
 env:
   goal_state_reward: 20
-  item_state_reward: 10
+  item_state_reward: 5
   goal_no_item_penalty: -1
   time_penalty: -1
   with_animation: False
 agent:
-  alpha: 0.0005
-  discount_rate: 0.7279469815260823
-  epsilon: 0.3459193991262446
-  replay_memory_size: 2194
-  tau: 0.1356872990339098
-  epsilon_decay: 0.9234749659816265
+  alpha: 0.01
+  discount_rate: 0.7437438147968025
+  epsilon: 0.09197864492044956
+  replay_memory_size: 3034
+  tau: 0.15171863828345944
+  epsilon_decay: 0.8466687472211124
   epsilon_min: 0.09215865462836183
   batch_size: 128
-  min_replay_memory_size: 913
+  min_replay_memory_size: 452
   loss_log_interval: 100
 trainer:
-  update_target_interval: 26
-  num_episodes: 994
+  update_target_interval: 37
+  num_episodes: 2650
   with_log: True
   with_validation: True
   with_visualization: False
