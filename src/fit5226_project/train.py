@@ -104,7 +104,9 @@ class Trainer:
         # decrease exploration over time
         self.agent.epsilon = max(self.agent.epsilon_min, self.agent.epsilon * self.agent.epsilon_decay)
         self.episode_rewards.append(total_reward)
-        mlflow_manager.log_episode_wise_reward(total_reward / step_count, episode_idx=epoch_idx)
+
+        if self.with_log:
+            mlflow_manager.log_episode_wise_reward(total_reward / step_count, episode_idx=epoch_idx)
 
     def state_to_array(self, state: Assignment2State) -> torch.Tensor:
         # Convert Assignment2State to array
@@ -159,7 +161,7 @@ class Trainer:
 
             prev_state = None
 
-            while not done and time.time() - start_time < 1 * 5:
+            while not done and time.time() - start_time < 1 * 10:
                 state_array = self.state_to_array(current_state)
                 available_actions = sample_env.get_available_actions(current_state)
                 action, is_greedy, all_qvals = self.agent.select_action(state_array, available_actions, is_test=True)
@@ -214,19 +216,19 @@ class Trainer:
 
         # we use the same environment as trainer to ensure that we use the same env parameters in validation
         sample_env = deepcopy(self.environment)
-        self.environment.set_with_animation(False)
+        sample_env.set_with_animation(False)
         for sample_episode_idx in range(num_episodes):
             if episode_samples is not None:
                 sample_env.initialize_for_new_episode(
                     agent_location=episode_samples[sample_episode_idx][0],
+                    agent_has_item=False,  # metric assumes that agent starts without item
                     env_index=episode_samples[sample_episode_idx][1],
                 )
             else:
                 sample_env.initialize_for_new_episode()
 
-            sample_env.current_sub_environment.agent.has_item = False  # metric assumes that agent starts without item
             current_state = sample_env.get_state()
-            start_time = time.time()
+            
             done = False
             start_location = sample_env.current_sub_environment.agent.get_location()
             item_location = sample_env.current_sub_environment.item.get_location()
@@ -235,6 +237,7 @@ class Trainer:
             prev_state = None
             predicted_steps = 0
             is_failed = False
+            start_time = time.time()
             while not done:
                 # we can't always detect cycles (unless we track the whole path and use set)
                 # which is expensive so we just kill the episode after a certain time
