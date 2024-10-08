@@ -221,6 +221,7 @@ class Trainer:
             if episode_samples is not None:
                 sample_env.initialize_for_new_episode(
                     agent_location=episode_samples[sample_episode_idx][0],
+                    agent_has_item=False,  # metric assumes that agent starts without item
                     env_index=episode_samples[sample_episode_idx][1],
                 )
             else:

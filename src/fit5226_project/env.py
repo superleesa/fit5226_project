@@ -55,7 +55,7 @@ class Environment:
         # Setup for animation
         self.with_animation = with_animation
 
-    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None) -> None:
+    def initialize_for_new_episode(self, agent_location: tuple[int, int] | None = None, agent_has_item: bool | None = None) -> None:
         if agent_location is None:
             self.agent.set_location_randomly(
                 self.n,
@@ -63,7 +63,7 @@ class Environment:
             )
         else:
             self.agent.location = agent_location
-        self.agent.has_item = True if random() < self.has_item_prob else False
+        self.agent.has_item = agent_has_item if agent_has_item is not None else True if random() < self.has_item_prob else False
         self.state = State(
             agent_location=self.agent.get_location(),
             item_location=self.item.get_location(),
@@ -366,12 +366,12 @@ class Assignment2Environment:
         return choice(self.environments)
 
     def initialize_for_new_episode(
-        self, agent_location: tuple[int, int] | None = None, env_index: int | None = None
+        self, agent_location: tuple[int, int] | None = None, agent_has_item: bool | None = None, env_index: int | None = None
     ) -> None:
         self.current_sub_environment = (
             self.get_random_sub_environment() if env_index is None else self.environments[env_index]
         )
-        self.current_sub_environment.initialize_for_new_episode(agent_location)
+        self.current_sub_environment.initialize_for_new_episode(agent_location, agent_has_item)
 
         self.state = Assignment2State(
             agent_location=self.current_sub_environment.agent.get_location(),
@@ -473,10 +473,10 @@ class GridObject(ABC):
 
 
 class AgentObject(GridObject):
-    def __init__(self, location: tuple[int, int] | None = None) -> None:
+    def __init__(self, location: tuple[int, int] | None = None, has_item: bool = False) -> None:
         super().__init__(location)
         self.icon = "A"
-        self.has_item = False  # TODO: has_item of AgentObject and State must be synched somehow
+        self.has_item = has_item
 
     def move(self, action: Action, grid_size: int) -> None:
         """
