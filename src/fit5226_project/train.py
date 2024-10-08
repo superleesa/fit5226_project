@@ -216,7 +216,7 @@ class Trainer:
 
         # we use the same environment as trainer to ensure that we use the same env parameters in validation
         sample_env = deepcopy(self.environment)
-        self.environment.set_with_animation(False)
+        sample_env.set_with_animation(False)
         for sample_episode_idx in range(num_episodes):
             if episode_samples is not None:
                 sample_env.initialize_for_new_episode(
