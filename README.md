@@ -1,4 +1,5 @@
 # FIT5226 Project: Dynamic Grid World Agent with DQN
+A problem to let a DQN-based agent find the shortest path in various worlds, without using agent's path length as part of reward. Its task is to first collect an item and then reach a goal point.
 
 <img src="docs/sample_grid_world.png" alt="Grid World Image" width="400"/>
 
@@ -27,4 +28,8 @@ pip install -e .
 ```
 
 ## Result
-![Result](notebooks/a2/training_visualization.png)
+Evaluation Score (ratio of agent-taken to optimal path length): 0.92648
+See [configs/config.yml](configs/config.yml) for best hyper-parameters.
+[final_checkpoints/2024-10-07_21-44-34-316970/checkpoint.pt/](final_checkpoints/2024-10-07_21-44-34-316970/checkpoint.pt/) is the corresponding checkpoint.
+
+![Parallel Coordinate Plot](docs/hp_parallel_coordinate_plot.png)
